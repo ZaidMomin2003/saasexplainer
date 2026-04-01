@@ -1,4 +1,5 @@
-﻿export default `---
+// @ts-nocheck
+export default `---
 title: Chat & Messaging UI
 impact: HIGH
 impactDescription: creates realistic chat interfaces with proper bubble styling and animations

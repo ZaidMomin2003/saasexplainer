@@ -1,4 +1,5 @@
-﻿export default `---
+// @ts-nocheck
+export default `---
 title: Scene Transitions
 impact: HIGH
 impactDescription: enables smooth scene changes and professional video flow

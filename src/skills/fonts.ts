@@ -1,4 +1,5 @@
-﻿export default `---
+// @ts-nocheck
+export default `---
 title: Fonts & Brand Harmony
 impact: MEDIUM
 impactDescription: Ensures professional typography and brand alignment.

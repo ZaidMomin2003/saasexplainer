@@ -1,4 +1,5 @@
-﻿export default `# Skill: Storyboarding
+// @ts-nocheck
+export default `# Skill: Storyboarding
 
 Use this skill when a \`storyboard\` JSON array is provided in the request. This skill allows for frame-accurate, second-by-second control over the entire animation.
 

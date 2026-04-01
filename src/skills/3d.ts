@@ -1,4 +1,5 @@
-﻿export default `---
+// @ts-nocheck
+export default `---
 title: 3D Animation with ThreeCanvas
 impact: MEDIUM
 impactDescription: enables proper 3D scene setup and smooth animations

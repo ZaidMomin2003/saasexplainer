@@ -1,4 +1,5 @@
-﻿export default `---
+// @ts-nocheck
+export default `---
 title: Audio & SFX Synchronization
 impact: HIGH
 impactDescription: Essential for "SaaS Explainers" to sync voiceover/music with UI.

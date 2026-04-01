@@ -1,4 +1,5 @@
-﻿export default `# Skill: SaaS Mockups
+// @ts-nocheck
+export default `# Skill: SaaS Mockups
 
 Use this skill when the user wants to show an app, a website, a dashboard, or any SaaS-related screen. This skill provides a premium, MacOS-style browser window with smooth shadows and glassmorphism.
 

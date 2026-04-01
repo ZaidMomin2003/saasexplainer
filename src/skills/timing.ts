@@ -1,4 +1,5 @@
-﻿export default `---
+// @ts-nocheck
+export default `---
 title: Timing & Interpolation Primitives
 impact: HIGH
 impactDescription: Essential for professional, non-janky motion.

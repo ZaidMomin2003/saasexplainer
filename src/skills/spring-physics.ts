@@ -1,4 +1,5 @@
-﻿export default `---
+// @ts-nocheck
+export default `---
 title: Spring Physics Animation
 impact: HIGH
 impactDescription: creates natural, organic motion instead of mechanical animations

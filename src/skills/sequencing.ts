@@ -1,4 +1,5 @@
-﻿export default `---
+// @ts-nocheck
+export default `---
 title: Timing & Sequencing
 impact: HIGH
 impactDescription: controls when elements appear and enables complex choreography

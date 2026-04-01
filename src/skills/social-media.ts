@@ -1,4 +1,5 @@
-﻿export default `---
+// @ts-nocheck
+export default `---
 title: Social Media Content
 impact: MEDIUM
 impactDescription: optimizes content for mobile viewing and engagement

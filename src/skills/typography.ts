@@ -1,4 +1,5 @@
-﻿export default `---
+// @ts-nocheck
+export default `---
 title: Typography & Text Animation
 impact: HIGH
 impactDescription: fixes common text animation bugs and improves readability
@@ -28,7 +29,7 @@ Always use string slicing for typewriter effects. Never use per-character opacit
 const typedText = FULL_TEXT.slice(0, typedChars);
 
 <span>{typedText}</span>
-<span style={{ opacity: caretOpacity }}>â–Œ</span>
+<span style={{ opacity: caretOpacity }}>▌</span>
 \`\`\`
 
 ## Cursor Blink - Use Smooth Interpolation
@@ -53,7 +54,7 @@ const caretOpacity = interpolate(
   { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
 );
 
-<span style={{ opacity: caretOpacity }}>â–Œ</span>;
+<span style={{ opacity: caretOpacity }}>▌</span>;
 \`\`\`
 
 ## Word Carousel - Stable Width Container

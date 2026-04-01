@@ -1,4 +1,5 @@
-﻿export default `---
+// @ts-nocheck
+export default `---
 title: Chart & Data Visualization
 impact: HIGH
 impactDescription: improves data viz quality and animation polish

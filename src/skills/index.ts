@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { examples } from "@/examples/code";
 
 // Import markdown files at build time

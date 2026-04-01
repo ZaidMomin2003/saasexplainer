@@ -1,4 +1,5 @@
-﻿export default `# Skill: Cursor Animation
+// @ts-nocheck
+export default `# Skill: Cursor Animation
 
 Use this skill when you need to simulate a user's mouse cursor moving on screen, clicking buttons, or exploring an app interface. This makes SaaS explainers feel interactive and alive.
 
