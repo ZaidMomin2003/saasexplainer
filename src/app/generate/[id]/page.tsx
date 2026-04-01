@@ -81,12 +81,12 @@ function GeneratePageContent() {
   const { markAsAiGenerated, markAsUserEdited } = useAutoCorrection({
     maxAttempts: MAX_CORRECTION_ATTEMPTS,
     compilationError: codeError,
-    generationError: generationError ?? undefined,
+    generationError: generationError ?? null,
     isStreaming,
     isCompiling,
     hasGeneratedOnce,
     code,
-    errorCorrection: errorCorrection ?? undefined,
+    errorCorrection: errorCorrection ?? null,
     onTriggerCorrection: useCallback(
       (correctionPrompt: string, context: ErrorCorrectionContext) => {
         setErrorCorrection(context);
