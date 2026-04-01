@@ -255,7 +255,7 @@ function GeneratePageContent() {
                 onFpsChange={() => {}}
                 isCompiling={isCompiling}
                 isStreaming={isStreaming}
-                error={generationError?.message || codeError || undefined}
+                error={generationError?.message || codeError || null}
                 errorType={(generationError?.type as any) || "api"}
                 code={code}
                 onRuntimeError={setRuntimeError}
