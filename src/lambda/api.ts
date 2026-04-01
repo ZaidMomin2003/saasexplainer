@@ -6,7 +6,7 @@ import {
   ProgressResponse,
   RenderRequest,
 } from "@/types/schema";
-import { ApiResponse } from "../helpers/api-response";
+import { ApiResponse } from "@/helpers/api-response";
 
 const makeRequest = async <Res>(
   endpoint: string,

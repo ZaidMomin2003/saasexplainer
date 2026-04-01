@@ -129,35 +129,44 @@ export default function RenderPage() {
               {/* Progress Visual - Scaled Down */}
               <div className="relative mb-8 scale-75 sm:scale-90">
                 <div className="absolute inset-[-20%] bg-rose-500/10 blur-[60px] rounded-full animate-pulse" />
-                <svg className="w-56 h-56 transform -rotate-90">
-                  <defs>
-                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#e11d48" />
-                      <stop offset="100%" stopColor="#fb7185" />
-                    </linearGradient>
-                  </defs>
-                  <circle
-                    cx="112"
-                    cy="112"
-                    r="104"
-                    stroke="#edeff2"
-                    strokeWidth="8"
-                    fill="transparent"
-                  />
-                  <motion.circle
-                    cx="112"
-                    cy="112"
-                    r="104"
-                    stroke="url(#gradient)"
-                    strokeWidth="8"
-                    fill="transparent"
-                    strokeDasharray={654}
-                    initial={{ strokeDashoffset: 654 }}
-                    animate={{ strokeDashoffset: 654 - (654 * progress) / 100 }}
-                    strokeLinecap="round"
-                    className="drop-shadow-[0_0_8px_rgba(225,29,72,0.4)]"
-                  />
-                </svg>
+                
+                {(() => {
+                  const radius = 104;
+                  const circumference = 2 * Math.PI * radius;
+                  const segmentLength = (progress / 100) * circumference;
+                  
+                  return (
+                    <svg className="w-56 h-56 transform -rotate-90">
+                      <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#e11d48" />
+                          <stop offset="100%" stopColor="#fb7185" />
+                        </linearGradient>
+                      </defs>
+                      <circle
+                        cx="112"
+                        cy="112"
+                        r={radius}
+                        stroke="#edeff2"
+                        strokeWidth="8"
+                        fill="transparent"
+                      />
+                      <motion.circle
+                        cx="112"
+                        cy="112"
+                        r={radius}
+                        stroke="url(#gradient)"
+                        strokeWidth="8"
+                        fill="transparent"
+                        strokeDasharray={circumference}
+                        initial={{ strokeDashoffset: circumference }}
+                        animate={{ strokeDashoffset: circumference - segmentLength }}
+                        strokeLinecap="round"
+                        className="drop-shadow-[0_0_8px_rgba(225,29,72,0.4)]"
+                      />
+                    </svg>
+                  );
+                })()}
                 
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <div className="flex flex-col items-center">
