@@ -209,8 +209,6 @@ function GeneratePageContent() {
           setHasAutoStarted(false);
           setCode("");
         }}
-        discoveryStep="COMPLETED"
-        isFromPlan={true}
         Component={Component}
         fps={30}
         durationInFrames={parseInt(project?.duration || "30") * 30}
