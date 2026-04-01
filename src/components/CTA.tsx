@@ -4,6 +4,7 @@ import React from "react";
 import { ArrowRight, Sparkles, Zap, Rocket } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import * as gtag from "@/lib/gtag";
 
 export const CTA = () => {
   return (
@@ -41,6 +42,7 @@ export const CTA = () => {
           
           <Link 
             href="/signup"
+            onClick={() => gtag.event({ action: 'cta_sign_up_click', category: 'conversion' })}
             className="relative w-full sm:w-auto px-12 py-5 rounded-2xl bg-rose-600 text-white font-black text-xl flex items-center justify-center gap-3 transition-all duration-500 hover:bg-rose-700 hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-rose-500/20 border border-white/5 group"
           >
              Start for free

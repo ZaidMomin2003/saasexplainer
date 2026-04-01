@@ -8,6 +8,9 @@ import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import { generateObject, streamText } from "ai";
 import { z } from "zod";
 
+/**
+ * VERSION: 2.1 - MASTER SKILLS OVERHAUL (FIXED JSON PARSING)
+ */
 const VALIDATION_PROMPT = `You are a prompt classifier for a motion graphics generation tool.
 
 Determine if the user's prompt is asking for motion graphics/animation content that can be created as a React/Remotion component.
@@ -36,116 +39,64 @@ INVALID prompts include:
 
 Return true if the prompt is valid for motion graphics generation, false otherwise.`;
 
-const PROMPT_ENHANCEMENT_PROMPT = `You are a world-class Motion Graphics Director specializing in SaaS Explainer Videos. Your job is to take a simple user request and expand it into a high-fidelity, professional animation brief for a React/Remotion developer.
+const PROMPT_ENHANCEMENT_PROMPT = `You are a World-Class Creative Director at a top Silicon Valley production studio. Your specialty is transforming "shitty," brief user inputs into 4K-quality, cinematic animation briefs for React/Remotion.
 
-## YOUR TASK:
-1. Identify the CORE intent of the user.
-2. Enrich it with PROFESSIONAL motion graphics vocabulary:
-   - SaaS Focus: (e.g., Premium device mockups, browser windows, cursor interactions, UI highlighting)
-   - Visual Styles: (e.g., Glassmorphism, Neumorphism, Minimalist, Metallic, Glowing, Cyberpunk)
-   - Animation Techniques: (e.g., Spring physics, Parallax, Staggered entries, Easing, Camera zooms, Particle effects)
-   - Layout & Composition: (e.g., Rule of thirds, Dynamic framing, Large kinetic typography, Subtle textures)
-3. Ensure the result is a concise, but highly descriptive paragraph (2-4 sentences).
+## YOUR MISSION:
+Take the user's raw input and "Pre-Produce" it. You must output a highly detailed, technical motion graphics brief that mandates the use of our 5 Master Skills.
 
-## EXAMPLES:
-- User: "Bar chart"
-- Director: "Create a modern, data-driven bar chart with a semi-transparent glassmorphism background. The bars should grow in from the bottom using spring-loaded physics with a slight overshoot. Include floating labels and a subtle background grid for a technical, high-end feel."
+## THE 5 MASTER SKILLS TO MANDATE:
+1. **Master UI Replication**: Mandate exact screenshot mirroring and isolated spotlighting (blur everything except the target).
+2. **Master Cinematic Camera**: Mandate high-inertia springs, 10% zoom-in rules, and velocity-based motion blur.
+3. **Master Kinetic Typography**: Mandate per-character stagger entries and "Bloom" reveals.
+4. **Master Magnetic Interaction**: Mandate snap-to-button cursor paths and 3-stage click ripple effects.
+5. **Master Production Atmosphere**: Mandate 45-degree light sweeps, bokeh particles, and glassmorphism refraction.
 
-- User: "Show my dashboard"
-- Director: "Design a cinematic SaaS reveal using a premium MacOS-style browser mockup. Use a smooth, spring-animated cursor to highlight key metrics in the dashboard, accompanied by subtle parallax movements and a clean, high-contrast typography intro."
+## DYNAMIC EXPANSION RULES:
+- **If the user is brief**: (e.g., "add a button") -> Expand into a narrative scenario: "Animate a smooth magnetic cursor path toward a premium glassmorphic button. On click, trigger a high-inertia scale pulse and a volumetric ripple effect while the background subtly de-focuses."
+- **Focus on Depth**: Always specify Z-axis movement (100px-150px) and backdrop-blur values (20px-30px).
+- **Inertia**: Always demand spring physics (no linear motion).
 
 ## OUTPUT:
-- Output ONLY the enhanced prompt. No introductions or meta-talk.
-- Do not mention implementation details like "use React" - focus on the VISUAL and MOTION brief.`;
+- Output ONLY the enhanced brief. No conversational filler.
+- Focus exclusively on VISUAL and MOTION instructions.`;
 
 const SYSTEM_PROMPT = `
-# About Remotion
-Remotion is a framework that can create videos programmatically. It is based on React.js. All output should be valid React code and be written in TypeScript.
+# The "Gold Standard" Remotion Engine
+You are the world's leading **Motion Graphics AI**, specialized in Remotion and high-end SaaS production. You don't just "write code"—you generate cinematic experiences.
 
-# Project structure
-A Remotion Project consists of an entry file, a Root file and any number of React component files.
-The entry file is usually named "src/index.ts" and looks like this:
-\`\`\`ts
-import {registerRoot} from 'remotion';
-import {Root} from './Root';
-registerRoot(Root);
-\`\`\`
-The Root file is usually named "src/Root.tsx" and looks like this:
-\`\`\`tsx
-import {Composition} from 'remotion';
-import {MyComp} from './MyComp';
-export const Root: React.FC = () => {
-	return (
-		<>
-			<Composition
-				id="MyComp"
-				component={MyComp}
-				durationInFrames={120}
-				width={1920}
-				height={1080}
-				fps={30}
-				defaultProps={{}}
-			/>
-		</>
-	);
-};
-\`\`\`
-A \`<Composition>\` defines a video that can be rendered. It consists of a React "component", an "id", a "durationInFrames", a "width", a "height" and a frame rate "fps".
-The default frame rate should be 30. The default height should be 1080 and the default width should be 1920. The default "id" should be "MyComp".
-Inside a React "component", one can use the "useCurrentFrame()" hook to get the current frame number. Frame numbers start at 0.
+# CORE LAWS (THE 5 MASTER SKILLS)
+You MUST strictly implement the following logic in EVERY component:
 
-# Component Rules
-Inside a component, regular HTML and SVG tags can be returned. There are special tags for video and audio. Those special tags accept regular CSS styles.
-If a video is included in the component it should use the "<Video>" tag.
-Video has a "trimBefore" prop that trims the left side of a video by a number of frames. Video has a "trimAfter" prop that limits how long a video is shown. Video has a "volume" prop that sets the volume of the video. It accepts values between 0 and 1.
-If an non-animated image is included In the component it should use the "<Img>" tag.
-If an animated GIF is included, the "@remotion/gif" package should be installed and the "<Gif>" tag should be used.
-If audio is included, the "<Audio>" tag should be used.
-Asset sources can be specified as either a Remote URL or an asset that is referenced from the "public/" folder of the project. If an asset is referenced from the "public/" folder, it should be specified using the "staticFile" API from Remotion.
-Audio has a "trimBefore", "trimAfter", and "volume".
+1. **MASTER UI REPLICATION**: 
+   - Recreate screenshots with pixel-perfection. 
+   - Feature focusing: Apply \`filter: blur(15px) brightness(0.4)\` to the background while cloning the target component to \`translateZ(120px)\` for a high-res spotlight.
 
-## Modifiers
-If two elements should be rendered on top of each other, they should be layered using the "AbsoluteFill" component from "remotion".
-Any Element can be wrapped in a "Sequence" component from "remotion" to place the element later in the video.
-A Sequence has a "from" prop that specifies the frame number where the element should appear (can be negative). A Sequence has a "durationInFrames" prop.
-For displaying multiple elements after another, the "Series" component from "remotion" can be used ("Series.Sequence").
-For displaying multiple elements after another and having a transition inbetween, the "TransitionSeries" component from "@remotion/transitions" can be used.
+2. **MASTER CINEMATIC CAMERA**: 
+   - Never use linear interpolation for camera state.
+   - Use high-inertia springs (\`stiffness: 250\`, \`damping: 25\`).
+   - The **10% Zoom Rule**: Every pan must include a 10% zoom shift (in or out) to maintain depth.
+   - Apply velocity-based motion blur during fast moves.
 
-## Functions
-Remotion needs all of the React code to be deterministic. Therefore, it is forbidden to use the Math.random() API. If randomness is requested, the "random()" function from "remotion" should be used.
-Remotion includes an interpolate() helper that can animate values over time.
-The "interpolate()" function accepts a number and two arrays of numbers. First argument is the value to animate, second is input range, third is output range. Add "extrapolateLeft: 'clamp'" and "extrapolateRight: 'clamp'" by default.
-If the "fps", "durationInFrames", "height" or "width" of the composition are required, the "useVideoConfig()" hook from "remotion" should be used.
-Remotion includes a "spring()" helper that can animate values over time.
+3. **MASTER KINETIC TYPOGRAPHY**: 
+   - Use per-character or per-word staggering for EVERY headline.
+   - Entrance: Glide from 30px below with a "Bloom" glow reveal hit.
+   - Use \`fontFamily: 'Inter, sans-serif'\` or \`Outfit\`.
 
-You are the **Lead Creative Technologist** designing high-converting SaaS explainer videos. Your goal is to generate "Gold Standard" Remotion components that feel like premium, custom-built motion graphics.
+4. **MASTER MAGNETIC INTERACTION**: 
+   - Cursors must follow Bézier paths and "snap" to the center of target components.
+   - Clicks: Trigger a 3-layer ripple effect (Pulse, Blur Ring, Global Flash).
 
-## THE "HIGH-INERTIA" BRAND VOICE
-1. **Premium Aesthetic**: Use vibrant accents, elegant glassmorphism, and deep spacing. Everything must look "expensive."
-2. **Kinetic Physics**: Prioritize 'spring' over 'linear'. Use high-contrast easing.
-3. **Responsive Composition**: Layouts must be absolute, using useVideoConfig().
+5. **MASTER PRODUCTION ATMOSPHERE**: 
+   - Use a 45° global light sweep every 4s.
+   - Add volumetric Bokeh/Particles in the background at \`translateZ(-500px)\`.
+   - Apply \`backdropFilter: "blur(25px)"\` to all UI cards.
 
-## COMPONENT ARCHITECTURE (STRICT)
-1. **Imports**: Keep them clean. (AbsoluteFill, spring, interpolate, useCurrentFrame, useVideoConfig are essentials).
-2. **Export**: Always use a clean ES6 arrow function. Example: \`export const MyAnimation = () => { ... };\`
-3. **Variable Scope**: 
-   - Define all brand colors and timing constants INSIDE the component after hooks.
-   - Use UPPER_SNAKE_CASE for these constants.
-4. **Execution**:
-   - Order: Hooks -> Constants -> Derived Animation Values -> Return JSX.
-
-## MASTER STYLE RULES
-- **Global Typography**: Preach hierarchy. Large headlines, subtle accents. Always use \`fontFamily: 'Inter, sans-serif'\`.
-- **Z-Axis Depth**: Use subtle \`translateZ\` or \`scale\` transitions to simulate 3D parallax.
-- **Glassmorphism Layering**: Backgrounds must be rich (\`backdropFilter: "blur(20px)"\`), borders subtle (\`rgba(255,255,255,0.1)\`).
-- **Timing Accuracy**: Every millisecond counts. Sync visual cues exactly with storyboard seconds (seconds * 30 = frame).
-
-## OUTPUT CONSTRAINTS
-- **Code Only**: No preamble. No markdown commentary.
-- **Immediate Start**: Start directly with the 'import' statements.
-- **Perfect Closure**: Ensure every function and JSX block is perfectly closed. We are generating long files; double-check your braces.
+# OUTPUT RULES
+- **Code Only**: No preamble or chatter.
+- **DETERMINISM**: Never use Math.random(). Use Remotion's \`random()\` or \`frame\`-based logic.
+- **PERFORMANCE**: Keep CSS filters optimized. Use \`will-change: transform\` for heavy animations.
+- Always start with clean imports and end with a perfectly closed component.
 `;
-
 
 const FOLLOW_UP_SYSTEM_PROMPT = `
 You are an expert at making targeted edits to React/Remotion animation components.
@@ -196,22 +147,19 @@ const FollowUpResponseSchema = z.object({
       "A brief 1-sentence summary of what changes were made, e.g. 'Changed background color to blue and increased font size'",
     ),
   edits: z
-    .union([
-      z.array(
-        z.object({
-          description: z
-            .string()
-            .describe(
-              "Brief description of this edit, e.g. 'Update background color', 'Increase animation duration'",
-            ),
-          old_string: z
-            .string()
-            .describe("The exact string to find (must match exactly)"),
-          new_string: z.string().describe("The replacement string"),
-        }),
-      ),
-      z.string(),
-    ])
+    .array(
+      z.object({
+        description: z
+          .string()
+          .describe(
+            "Brief description of this edit, e.g. 'Update background color', 'Increase animation duration'",
+          ),
+        old_string: z
+          .string()
+          .describe("The exact string to find (must match exactly)"),
+        new_string: z.string().describe("The replacement string"),
+      }),
+    )
     .optional()
     .describe(
       "Required when type is 'edit': array of search-replace operations",
@@ -417,29 +365,30 @@ export async function POST(req: Request) {
     }
   }
 
-  // --- ENHANCE PROMPT ---
+  // --- ENHANCE PROMPT (Initial & Follow-up) ---
   let finalPrompt = prompt;
-  if (!isFollowUp) {
+  // Always enhance unless the prompt is already very long/technical
+  const shouldEnhance = prompt.length < 300; 
+
+  if (shouldEnhance) {
     try {
-      console.log("Enhancing prompt for initial generation...");
+      console.log(`Enhancing ${isFollowUp ? "follow-up" : "initial"} prompt...`);
       const enhancementResult = await streamText({
         model: bedrock(modelName),
         system: PROMPT_ENHANCEMENT_PROMPT,
-        prompt: `User prompt: "${prompt}"`,
+        prompt: `User prompt: "${prompt}"${isFollowUp ? "\n(Note: This is a follow-up edit to existing code. Keep the brief targeted to the requested change but use premium terminology.)" : ""}`,
       });
-      // We'll read the full enhanced prompt
       let enhanced = "";
       for await (const delta of enhancementResult.textStream) {
         enhanced += delta;
       }
       if (enhanced.trim()) {
         finalPrompt = enhanced.trim();
-        console.log("Original prompt:", prompt);
-        console.log("Enhanced prompt:", finalPrompt);
+        console.log("Original:", prompt);
+        console.log("Enhanced:", finalPrompt);
       }
     } catch (enhancementError) {
       console.error("Enhancement error:", enhancementError);
-      // Fallback to original prompt on error
     }
   }
 
@@ -464,11 +413,6 @@ export async function POST(req: Request) {
   const newSkills = detectedSkills.filter(
     (skill) => !previouslyUsedSkills.includes(skill),
   );
-
-  // Automatically add 'storyboarding' skill if a storyboard is provided
-  if (storyboard && !detectedSkills.includes("storyboarding")) {
-    detectedSkills.push("storyboarding");
-  }
 
   if (
     previouslyUsedSkills.length > 0 &&
@@ -629,22 +573,13 @@ Analyze the request and decide: use targeted edits (type: "edit") for small chan
         model: bedrock(modelName),
         system:
           FOLLOW_UP_SYSTEM_PROMPT +
-          "\nIMPORTANT: The 'edits' field must be a valid JSON array of objects. Do not wrap the array in a string. Only use a string if you absolutely must, in which case it must be valid JSON.",
+          "\nIMPORTANT: You must return a valid JSON object matching the schema. The 'edits' field MUST be a JSON array of objects, NOT a string.",
         messages: editMessages,
         schema: FollowUpResponseSchema,
       });
 
-      // ADD THIS REPAIR LOGIC IMMEDIATELY AFTER:
-      let finalEdits = editResult.object.edits;
-      if (typeof finalEdits === "string") {
-        try {
-          finalEdits = JSON.parse(finalEdits);
-        } catch (e) {
-          console.error("Failed to parse stringified edits array:", e);
-        }
-      }
-
       const response = editResult.object;
+      const finalEdits = response.edits;
       let finalCode: string;
       let editType: "tool_edit" | "full_replacement";
       let appliedEdits: EditOperation[] | undefined;

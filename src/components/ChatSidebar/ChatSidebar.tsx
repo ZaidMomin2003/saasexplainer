@@ -28,6 +28,10 @@ import {
 import { Logo } from "@/components/logo";
 import { ChatHistory } from "./ChatHistory";
 import { ChatInput } from "./ChatInput";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { LogOut } from "lucide-react";
+import { useConfirm } from "@/components/ModalProvider";
 
 export interface ChatSidebarRef {
   triggerGeneration: (options?: {
@@ -118,7 +122,10 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(
     },
     ref,
   ) {
+    const router = useRouter();
+    const confirmAction = useConfirm();
     const promptRef = useRef<string>("");
+    const [showDashboardConfirm, setShowDashboardConfirm] = useState(false);
 
     const { isLoading, runGeneration } = useGenerationApi();
 
@@ -204,17 +211,25 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(
           <div className="flex-1 flex flex-col min-h-0 m-6 rounded-2xl bg-white border border-slate-200 shadow-sm transition-all duration-300">
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
-              <Logo />
+              <button 
+                onClick={() => setShowDashboardConfirm(true)}
+                className="hover:opacity-70 transition-opacity cursor-pointer text-left"
+              >
+                <Logo />
+              </button>
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        "Start over? This will clear the chat history and reset your animation.",
-                      )
-                    ) {
+                  onClick={async () => {
+                    const isConfirmed = await confirmAction({
+                      title: "Reset Production?",
+                      description: "This will permanently clear your current conversation and reset all code changes. You cannot undo this.",
+                      confirmText: "Reset Everything",
+                      cancelText: "Keep Working",
+                      variant: "danger"
+                    });
+                    if (isConfirmed) {
                       onResetChat?.();
                     }
                   }}
@@ -253,6 +268,55 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(
             />
           </div>
         )}
+        {/* Dashboard Confirmation Modal */}
+        <AnimatePresence>
+          {showDashboardConfirm && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowDashboardConfirm(false)}
+                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="relative bg-white rounded-[2rem] p-8 shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2" />
+                
+                <div className="relative">
+                  <div className="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mb-6">
+                    <LogOut size={24} />
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">Back to Dashboard?</h3>
+                  <p className="text-slate-500 text-sm leading-relaxed mb-8">
+                    Your current progress will be safe. You can return and continue this production anytime from your dashboard.
+                  </p>
+                  
+                  <div className="flex flex-col gap-3">
+                    <Button 
+                      onClick={() => router.push('/dashboard')}
+                      className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-12 font-bold transition-all active:scale-[0.98]"
+                    >
+                      Yes, take me back
+                    </Button>
+                    <Button 
+                      variant="ghost"
+                      onClick={() => setShowDashboardConfirm(false)}
+                      className="w-full text-slate-500 hover:text-slate-900 rounded-xl h-12 font-medium"
+                    >
+                      Wait, stay here
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     );
   },

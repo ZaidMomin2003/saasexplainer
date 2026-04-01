@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Zap, Sparkles, Wand2, MonitorPlay, MessageCircle, Box } from "lucide-react";
 import Link from "next/link";
+import * as gtag from "@/lib/gtag";
 
 export const Pricing = () => {
   return (
@@ -137,6 +138,7 @@ export const Pricing = () => {
 
                     <Link 
                       href="/signup"
+                      onClick={() => gtag.event({ action: 'pricing_sign_up_click', category: 'conversion' })}
                       className="w-full bg-rose-600 text-white py-5 rounded-2xl font-black text-lg tracking-tight hover:bg-rose-700 transition-all shadow-xl shadow-rose-500/20 active:scale-[0.98] block text-center"
                     >
                       Start For Free

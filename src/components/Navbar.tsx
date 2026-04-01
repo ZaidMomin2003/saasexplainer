@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X, LayoutDashboard, Sparkles, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import * as gtag from "@/lib/gtag";
 
 export const Navbar = () => {
   const { user } = useAuth();
@@ -73,6 +74,7 @@ export const Navbar = () => {
                 {user ? (
                   <Link 
                     href="/dashboard"
+                    onClick={() => gtag.event({ action: 'go_to_app', category: 'navigation' })}
                     className="bg-rose-600 text-white px-6 py-3 rounded-xl font-bold text-[13px] hover:bg-rose-700 transition-all active:scale-95 shadow-lg shadow-rose-500/20 flex items-center gap-2 group pointer-events-auto"
                   >
                     Go to app
@@ -82,12 +84,14 @@ export const Navbar = () => {
                   <>
                     <Link 
                       href="/login"
+                      onClick={() => gtag.event({ action: 'sign_in_attempt', category: 'auth' })}
                       className="text-gray-900 px-4 py-2 font-bold text-[13px] hover:text-rose-600 transition-colors"
                     >
                       Sign In
                     </Link>
                     <Link 
                       href="/signup"
+                      onClick={() => gtag.event({ action: 'sign_up_click', category: 'conversion' })}
                       className="bg-rose-600 text-white px-6 py-3 rounded-xl font-bold text-[13px] hover:bg-rose-700 transition-all active:scale-95 shadow-lg shadow-rose-500/20 flex items-center gap-2 group pointer-events-auto"
                     >
                       Start for free
@@ -123,7 +127,10 @@ export const Navbar = () => {
                 {user ? (
                   <Link 
                     href="/dashboard"
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                      setIsOpen(false);
+                      gtag.event({ action: 'go_to_app', category: 'navigation' });
+                    }}
                     className="bg-rose-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-rose-500/20 flex items-center justify-center gap-2"
                   >
                     Go to app
@@ -133,7 +140,10 @@ export const Navbar = () => {
                   <>
                     <Link 
                       href="/signup"
-                      onClick={() => setIsOpen(false)}
+                      onClick={() => {
+                        setIsOpen(false);
+                        gtag.event({ action: 'sign_up_click', category: 'conversion' });
+                      }}
                       className="bg-rose-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-rose-500/20 flex items-center justify-center gap-2"
                     >
                       Start for free
@@ -141,7 +151,10 @@ export const Navbar = () => {
                     </Link>
                     <Link 
                       href="/login"
-                      onClick={() => setIsOpen(false)}
+                      onClick={() => {
+                        setIsOpen(false);
+                        gtag.event({ action: 'sign_in_attempt', category: 'auth' });
+                      }}
                       className="text-gray-950 py-4 font-black text-lg"
                     >
                       Sign In

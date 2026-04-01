@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowRight, Clock, Type, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
+import Loader from "@/components/Loader";
 
 interface NewProjectModalProps {
   isOpen: boolean;
@@ -75,9 +76,25 @@ export const NewProjectModal = ({ isOpen, onClose }: NewProjectModalProps) => {
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }} 
         animate={{ opacity: 1, scale: 1, y: 0 }} 
-        className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col"
+        className="relative w-full max-w-lg bg-white rounded-[4rem] shadow-2xl overflow-hidden flex flex-col"
       >
-        <div className="flex items-center justify-between px-10 py-8 border-b border-gray-100">
+        <AnimatePresence>
+          {loading && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-50 bg-white/90 backdrop-blur-xl flex items-center justify-center p-12"
+            >
+               <Loader 
+                title="Baking Studio" 
+                subtitle="Initializing cinematic manifests and production pipelines..." 
+               />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="flex items-center justify-between px-10 py-10 border-b border-gray-100">
            <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-rose-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-rose-600/20">
                  <Sparkles size={20} />

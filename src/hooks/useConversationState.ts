@@ -8,8 +8,9 @@ import type {
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useConversationState(projectId?: string) {
-  const [state, setState] = useState<ConversationState>({
+  const [state, setState] = useState<ConversationState & { futureMessages: ConversationMessage[] }>({
     messages: [],
+    futureMessages: [],
     hasManualEdits: false,
     lastGenerationTimestamp: null,
     pendingMessage: undefined,
@@ -22,7 +23,7 @@ export function useConversationState(projectId?: string) {
       const stored = localStorage.getItem(`conv_state_${projectId}`);
       if (stored) {
         try {
-          setState(JSON.parse(stored));
+          setState((prev) => ({ ...prev, ...JSON.parse(stored) }));
         } catch (e) {
           console.error("Failed to parse stored conversation", e);
         }
@@ -52,6 +53,7 @@ export function useConversationState(projectId?: string) {
       setState((prev) => ({
         ...prev,
         messages: [...prev.messages, message],
+        futureMessages: [], // Clear redo history on new action
       }));
       return message.id;
     },
@@ -72,6 +74,7 @@ export function useConversationState(projectId?: string) {
       setState((prev) => ({
         ...prev,
         messages: [...prev.messages, message],
+        futureMessages: [], // Clear redo history on new action
         hasManualEdits: false,
         lastGenerationTimestamp: Date.now(),
       }));
@@ -117,6 +120,7 @@ export function useConversationState(projectId?: string) {
     lastAiCodeRef.current = "";
     const newState = {
       messages: [],
+      futureMessages: [],
       hasManualEdits: false,
       lastGenerationTimestamp: null,
       pendingMessage: undefined,
@@ -185,6 +189,69 @@ export function useConversationState(projectId?: string) {
     return undefined;
   }, [state.messages]);
 
+  const undo = useCallback(() => {
+    if (state.messages.length < 2) return null;
+
+    // Find the last assistant/user pair
+    const newMessages = [...state.messages];
+    const undone: ConversationMessage[] = [];
+
+    // Remove the assistant message
+    const last = newMessages.pop();
+    if (last) undone.unshift(last);
+
+    // Remove the user message (or multiple errors leading up to it)
+    while (newMessages.length > 0 && newMessages[newMessages.length - 1].role !== "user") {
+      const msg = newMessages.pop();
+      if (msg) undone.unshift(msg);
+    }
+    const userMsg = newMessages.pop();
+    if (userMsg) undone.unshift(userMsg);
+
+    setState((prev) => ({
+      ...prev,
+      messages: newMessages,
+      futureMessages: [...undone, ...prev.futureMessages],
+    }));
+
+    // Return the code snapshot of the NEW last assistant message
+    for (let i = newMessages.length - 1; i >= 0; i--) {
+      if (newMessages[i].role === "assistant") {
+        return newMessages[i].codeSnapshot || "";
+      }
+    }
+    return ""; // Return empty string if no code snapshots remain
+  }, [state.messages]);
+
+  const redo = useCallback(() => {
+    if (state.futureMessages.length < 1) return null;
+
+    const newFuture = [...state.futureMessages];
+    const redone: ConversationMessage[] = [];
+
+    // Take the user/assistant pair back
+    const userMsg = newFuture.shift();
+    if (userMsg) redone.push(userMsg);
+
+    while (newFuture.length > 0 && newFuture[0].role !== "assistant") {
+      const msg = newFuture.shift();
+      if (msg) redone.push(msg);
+    }
+    const assistantMsg = newFuture.shift();
+    if (assistantMsg) redone.push(assistantMsg);
+
+    setState((prev) => ({
+      ...prev,
+      messages: [...prev.messages, ...redone],
+      futureMessages: newFuture,
+    }));
+
+    return assistantMsg?.codeSnapshot || "";
+  }, [state.futureMessages]);
+
+  const canUndo = state.messages.length >= 2;
+  const canRedo = state.futureMessages.length >= 2;
+
   return {
     ...state,
     addUserMessage,
@@ -197,6 +264,10 @@ export function useConversationState(projectId?: string) {
     getLastUserAttachedImages,
     setPendingMessage,
     clearPendingMessage,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
     isFirstGeneration: state.messages.length === 0,
-  };
-}
+  }
+};

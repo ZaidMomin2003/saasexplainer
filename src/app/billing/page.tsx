@@ -1,15 +1,40 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { DashboardNav } from "@/components/DashboardNav";
-import { CreditCard, Download, CheckCircle2 } from "lucide-react";
+import { CreditCard, Download, CheckCircle2, Loader2, History } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function BillingPage() {
-  const invoices = [
-    { id: "INV-2026-03-24", amount: "$15.00", status: "Paid", date: "Mar 24, 2026" },
-    { id: "INV-2026-03-12", amount: "$15.00", status: "Paid", date: "Mar 12, 2026" },
-    { id: "INV-2026-02-28", amount: "$15.00", status: "Paid", date: "Feb 28, 2026" },
-  ];
+  const { user, loading: authLoading } = useAuth();
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchBillingHistory() {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/payments/history?email=${user.email}&userId=${user.uid}`);
+        const data = await response.json();
+        
+        if (data.invoices) {
+          setInvoices(data.invoices);
+        }
+      } catch (error) {
+        console.error("Failed to fetch invoices:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (!authLoading && user) {
+      fetchBillingHistory();
+    } else if (!authLoading && !user) {
+        setLoading(false);
+    }
+  }, [user, authLoading]);
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] font-inter selection:bg-rose-100 selection:text-rose-900">
@@ -55,47 +80,78 @@ export default function BillingPage() {
           </section>
 
           {/* Payment History Table */}
-          <section className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
+          <section className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm min-h-[400px] flex flex-col">
             <div className="p-8 border-b border-gray-100 pb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-1 font-[var(--font-outfit)]">Payment History</h2>
                 <p className="text-sm font-medium text-gray-500">View and download your past export invoices.</p>
               </div>
-              <button className="px-5 py-2 bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-sm font-bold shadow-sm hover:bg-gray-100 hover:border-gray-300 transition-all active:scale-95 flex items-center gap-2">
+              <button 
+                disabled={invoices.length === 0}
+                className="px-5 py-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-sm font-bold shadow-sm hover:bg-gray-100 hover:border-gray-300 transition-all active:scale-95 flex items-center gap-2"
+              >
                 <Download size={14} />
                 Export All
               </button>
             </div>
             
-            <div className="overflow-x-auto w-full">
-              <table className="w-full text-left text-sm text-gray-600 font-medium">
-                <thead className="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider font-bold">
-                  <tr>
-                    <th scope="col" className="px-8 py-4 border-b border-gray-100">Invoice</th>
-                    <th scope="col" className="px-8 py-4 border-b border-gray-100">Date</th>
-                    <th scope="col" className="px-8 py-4 border-b border-gray-100">Amount</th>
-                    <th scope="col" className="px-8 py-4 border-b border-gray-100">Status</th>
-                    <th scope="col" className="px-8 py-4 border-b border-gray-100 text-right">Receipt</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {invoices.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-8 py-5 whitespace-nowrap font-bold text-gray-900">{inv.id}</td>
-                      <td className="px-8 py-5 whitespace-nowrap">{inv.date}</td>
-                      <td className="px-8 py-5 whitespace-nowrap font-bold text-gray-800">{inv.amount}</td>
-                      <td className="px-8 py-5 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
-                          <CheckCircle2 size={12} /> {inv.status}
-                        </span>
-                      </td>
-                      <td className="px-8 py-5 whitespace-nowrap text-right">
-                        <a href="#" className="font-bold text-rose-600 hover:text-rose-800 transition-colors">Download PDF</a>
-                      </td>
+            <div className="overflow-x-auto w-full flex-1 relative">
+              {loading ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-[2px] z-10">
+                   <Loader2 className="animate-spin text-rose-600 mb-2" size={32} />
+                   <p className="text-sm font-bold text-gray-500">Fetching bills...</p>
+                </div>
+              ) : invoices.length === 0 ? (
+                <div className="py-20 flex flex-col items-center justify-center text-center px-6">
+                  <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 border border-gray-100">
+                    <History size={24} className="text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">No payment history</h3>
+                  <p className="text-sm font-medium text-gray-500 max-w-xs">
+                    You haven't made any payments yet. Your export history will appear here once you render your first video.
+                  </p>
+                </div>
+              ) : (
+                <table className="w-full text-left text-sm text-gray-600 font-medium">
+                  <thead className="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider font-bold">
+                    <tr>
+                      <th scope="col" className="px-8 py-4 border-b border-gray-100">Invoice</th>
+                      <th scope="col" className="px-8 py-4 border-b border-gray-100">Date</th>
+                      <th scope="col" className="px-8 py-4 border-b border-gray-100">Amount</th>
+                      <th scope="col" className="px-8 py-4 border-b border-gray-100">Status</th>
+                      <th scope="col" className="px-8 py-4 border-b border-gray-100 text-right">Receipt</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {invoices.map((inv) => (
+                      <tr key={inv.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-8 py-5 whitespace-nowrap font-bold text-gray-900">{inv.id}</td>
+                        <td className="px-8 py-5 whitespace-nowrap">{inv.date}</td>
+                        <td className="px-8 py-5 whitespace-nowrap font-bold text-gray-800">{inv.amount}</td>
+                        <td className="px-8 py-5 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
+                            inv.status === 'Paid' 
+                              ? 'bg-emerald-50 text-emerald-700' 
+                              : 'bg-amber-50 text-amber-700'
+                            }`}>
+                            <CheckCircle2 size={12} /> {inv.status}
+                          </span>
+                        </td>
+                        <td className="px-8 py-5 whitespace-nowrap text-right">
+                          <a 
+                            href={inv.receiptUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="font-bold text-rose-600 hover:text-rose-800 transition-colors"
+                          >
+                            Download PDF
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </section>
 
@@ -104,3 +160,4 @@ export default function BillingPage() {
     </div>
   );
 }
+

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, Undo2, Redo2 } from "lucide-react";
 import type { NextPage } from "next";
 import { useParams, useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -52,6 +52,10 @@ function GeneratePageContent() {
     getLastUserAttachedImages,
     setPendingMessage,
     clearPendingMessage,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
     isFirstGeneration,
     clearConversation,
   } = useConversationState(id);
@@ -137,13 +141,11 @@ function GeneratePageContent() {
   }, [isStreaming, markAsAiGenerated, compileCode]);
 
   useEffect(() => {
-    // If project is loaded and we have a script from the plan phase, pre-fill it in the chat
+    // If project is loaded and we have a script from the plan phase, we used to pre-fill it.
+    // The user requested to keep it blank on refresh.
     if (project && project.script && !hasAutoStarted) {
       setHasAutoStarted(true);
-      
-      const bakedPrompt = `Story approved! Here is the finalized script for the video: "${project.script}". Now, write the full Remotion animation code for this SaaS explainer. Use ALL skills (3D, transitions, mockups) to make it premium.`;
-      
-      setPrompt(bakedPrompt);
+      // setPrompt(bakedPrompt) is removed to keep the input blank
     }
   }, [project, hasAutoStarted]);
 
@@ -231,13 +233,43 @@ function GeneratePageContent() {
           </div>
 
           <div className="flex items-center gap-4">
+            <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1">
+              <button
+                onClick={() => {
+                  const previousCode = undo();
+                  if (previousCode !== null) {
+                    setCode(previousCode);
+                    compileCode(previousCode);
+                  }
+                }}
+                disabled={!canUndo || isStreaming}
+                className="p-1.5 rounded-lg hover:bg-white hover:shadow-sm disabled:opacity-30 disabled:pointer-events-none transition-all text-slate-600"
+                title="Undo (Ctrl+Z)"
+              >
+                <Undo2 size={18} />
+              </button>
+              <button
+                onClick={() => {
+                   const nextCode = redo();
+                   if (nextCode !== null) {
+                     setCode(nextCode);
+                     compileCode(nextCode);
+                   }
+                }}
+                disabled={!canRedo || isStreaming}
+                className="p-1.5 rounded-lg hover:bg-white hover:shadow-sm disabled:opacity-30 disabled:pointer-events-none transition-all text-slate-600"
+                title="Redo (Ctrl+Y)"
+              >
+                <Redo2 size={18} />
+              </button>
+            </div>
             <div className="h-8 w-[1px] bg-slate-200 mx-2" />
             <RenderControls 
               code={code} 
               durationInFrames={parseInt(project?.duration || "30") * 30} 
               fps={30} 
-              projectId={id as string}
-              projectName={project?.name}
+              projectId={(id as string) || ""}
+              projectName={project?.name || "Untitled Production"}
             />
           </div>
         </header>

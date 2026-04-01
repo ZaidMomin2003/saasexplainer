@@ -18,7 +18,7 @@ import {
   Share2
 } from "lucide-react";
 import { db } from "@/lib/firebase";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import Link from "next/link";
 
 const steps = [
@@ -44,15 +44,13 @@ export default function RenderPage() {
         const data = doc.data();
         setProject(data);
         
-        if (data.render?.progress !== undefined) {
-          setProgress(data.render.progress);
-          if (data.render.progress < 20) setCurrentStepIndex(0);
-          else if (data.render.progress < 70) setCurrentStepIndex(1);
-          else if (data.render.progress < 90) setCurrentStepIndex(2);
-          else setCurrentStepIndex(3);
-        } else if (!project) {
-          simulateProgress();
-        }
+        const currentProgress = data.render?.progress || 0;
+        setProgress(currentProgress);
+
+        if (currentProgress < 20) setCurrentStepIndex(0);
+        else if (currentProgress < 70) setCurrentStepIndex(1);
+        else if (currentProgress < 90) setCurrentStepIndex(2);
+        else setCurrentStepIndex(3);
       }
       setLoading(false);
     });
@@ -60,23 +58,54 @@ export default function RenderPage() {
     return () => unsubscribe();
   }, [id]);
 
-  const simulateProgress = () => {
-    let p = 0;
-    const interval = setInterval(() => {
-      p += Math.random() * 8;
-      if (p >= 100) {
-        p = 100;
-        clearInterval(interval);
+  // Real progress polling for Lambda
+  useEffect(() => {
+    if (!id || !project?.render?.renderId || progress >= 100) return;
+
+    const poll = async () => {
+      try {
+        const res = await fetch("/api/lambda/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            bucketName: project.render.bucketName,
+            id: project.render.renderId,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.type === "progress") {
+          const newProgress = Math.floor(data.progress * 100);
+          if (newProgress > progress) {
+             const projectRef = doc(db, "projects", id as string);
+             await updateDoc(projectRef, {
+               "render.progress": newProgress,
+               "render.status": "rendering"
+             });
+          }
+        } else if (data.type === "done") {
+          const projectRef = doc(db, "projects", id as string);
+          await updateDoc(projectRef, {
+            "render.progress": 100,
+            "render.publicUrl": data.url,
+            "render.size": data.size,
+            "render.completedAt": Date.now(),
+            "status": "completed"
+          });
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
       }
-      setProgress(Math.floor(p));
-      if (p < 20) setCurrentStepIndex(0);
-      else if (p < 70) setCurrentStepIndex(1);
-      else if (p < 90) setCurrentStepIndex(2);
-      else setCurrentStepIndex(3);
-    }, 1200);
-  };
+    };
+
+    const interval = setInterval(poll, 4000);
+    return () => clearInterval(interval);
+  }, [id, project?.render?.renderId, progress]);
 
   const isCompleted = progress === 100;
+  const downloadUrl = project?.render?.publicUrl;
+
 
   return (
     <div className="min-h-screen bg-[#fcfcfd] flex flex-col font-inter selection:bg-rose-100 relative overflow-hidden">
@@ -245,7 +274,10 @@ export default function RenderPage() {
                       animate={{ opacity: 1, y: 0 }}
                       className="flex flex-col items-center gap-4"
                     >
-                      <button className="group relative w-full sm:w-64 py-3.5 bg-slate-900 text-white rounded-xl font-black text-lg flex items-center justify-center gap-3 hover:bg-rose-600 transition-all shadow-lg hover:translate-y-[-2px] active:scale-[0.98]">
+                      <button 
+                        onClick={() => downloadUrl && window.open(downloadUrl, "_blank")}
+                        className="group relative w-full sm:w-64 py-3.5 bg-slate-900 text-white rounded-xl font-black text-lg flex items-center justify-center gap-3 hover:bg-rose-600 transition-all shadow-lg hover:translate-y-[-2px] active:scale-[0.98]"
+                      >
                         Download
                         <Download size={18} strokeWidth={3} />
                       </button>

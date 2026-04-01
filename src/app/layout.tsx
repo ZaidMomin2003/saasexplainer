@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Outfit, Great_Vibes } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
+import { ModalProvider } from "@/components/ModalProvider";
 import "./globals.css";
 
 const inter = Inter({ 
@@ -29,6 +30,9 @@ export const metadata: Metadata = {
   },
 };
 
+import Script from "next/script";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,9 +40,28 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
+      <head>
+        {/* Google Analytics tag (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-T3XX7DGTKS"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-T3XX7DGTKS');
+          `}
+        </Script>
+      </head>
       <body className={`${inter.variable} ${outfit.variable} ${cursive.variable} font-inter bg-white text-gray-900 antialiased selection:bg-indigo-100 selection:text-indigo-950`}>
+        <GoogleAnalytics />
         <AuthProvider>
-          {children}
+          <ModalProvider>
+            {children}
+          </ModalProvider>
         </AuthProvider>
       </body>
     </html>

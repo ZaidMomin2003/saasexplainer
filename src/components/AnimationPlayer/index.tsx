@@ -4,6 +4,8 @@ import { Player, type ErrorFallback, type PlayerRef } from "@remotion/player";
 import React, { useEffect, useRef } from "react";
 import { ErrorDisplay, type ErrorType } from "../ErrorDisplay";
 
+import AILoadingState from "../AILoadingState";
+
 const errorTitles: Record<ErrorType, string> = {
   validation: "Invalid Prompt",
   api: "API Error",
@@ -85,21 +87,10 @@ export const AnimationPlayer: React.FC<AnimationPlayerProps> = ({
   }, [onFrameChange, Component]);
 
   const renderContent = () => {
-    if (isStreaming) {
+    if (isStreaming || isCompiling) {
       return (
-        <div className="w-full aspect-video max-h-[calc(100%-80px)] flex flex-col justify-center items-center gap-4 bg-white border border-slate-100 rounded-lg overflow-hidden shadow-sm">
-          <div className="w-12 h-12 border-4 border-slate-100 border-t-rose-500 rounded-full animate-spin" />
-          <p className="text-slate-500 text-sm">
-            Waiting for code generation to finish...
-          </p>
-        </div>
-      );
-    }
-
-    if (isCompiling) {
-      return (
-        <div className="w-full aspect-video max-h-[calc(100%-80px)] flex justify-center items-center bg-white border border-slate-100 rounded-lg overflow-hidden shadow-sm">
-          <div className="w-12 h-12 border-4 border-slate-100 border-t-rose-500 rounded-full animate-spin" />
+        <div className="w-full aspect-video max-h-[calc(100%-80px)] flex flex-col justify-center items-center bg-white border border-slate-100 rounded-lg overflow-hidden shadow-sm">
+          <AILoadingState />
         </div>
       );
     }

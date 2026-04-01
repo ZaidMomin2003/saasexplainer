@@ -11,3 +11,16 @@ Hello @Arshad, See Arshad, Employment here at AWS is totally give and take, i am
 Tomorrow lets do a meeting, you come alone with all updates. We will talk about next project as well. 
 
 Hello @Parvathi maam, i am facing some issues here, i am not able to see the progress doing fast. so i beg pardon you, please allow me to solve my mess by evening. I will get back to you with updates. Thanks. Please allow me to solve it out.
+
+@Parvathi @everyone, debugging successful, advance with TDL. Complains are raised so expect checking, wrap up by Evening guys. 
+
+@Zaid Good you did it, i either way asked them for some relief. Regarding salaries, i confirmed they are waiting for completion of migration. Once thats done, you will receive notes on notice board. I am not sure about time, maybe wait till evening? again i am not sure and saying this out of experience. Keep checking it.
+
+
+Hey @everyone, anyone knows about those 3 guys? what are they doing now? are they transferred to other departments? or are they fired? If fired? with or without salaries? Please lemme know guys. If anyone have any idea. Thanks. 
+
+
+From dizzily-star : Yaa they fired them, they are ofc giving salary but are removing bonus amount and tools usage from there salaries. I confirmed it from my mentor. They are probably getting their salaries this 8th Aprilish but i am not sure. They tried work hack and shared credentials, broke some terms and tbh, none of them contributed much so i knew they will face layoff soon. Anyways Did you asked AWS about the joining date? 
+
+
+@dizzily-star : Yaa i did asked, didn't got any answer yet. I will forward the message ASAP. Whats your intention? I still wanna go, @everyone, respond your align direction. You guys wanna come or no? and @Parvathi maam, whats your suggestion? 

@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
-import { Search, Download, Video, Calendar, Clock, HardDrive, ArrowLeft, MoreVertical, PlayCircle } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Search, Download, Video, Calendar, Clock, HardDrive, ArrowLeft, MoreVertical, PlayCircle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { DashboardNav } from "@/components/DashboardNav";
 import Link from "next/link";
+import { db, auth } from "@/lib/firebase";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 interface DownloadItem {
   id: string;
@@ -16,40 +18,41 @@ interface DownloadItem {
   previewUrl: string;
 }
 
-const mockDownloads: DownloadItem[] = [
-  {
-    id: "v-1",
-    name: "SaaS Product Demo - Fintech App",
-    renderDate: "Mar 24, 2026",
-    duration: "0:45",
-    size: "24.5 MB",
-    status: "Completed",
-    previewUrl: "#",
-  },
-  {
-    id: "v-2",
-    name: "Hero Section Animation - V2",
-    renderDate: "Mar 22, 2026",
-    duration: "0:15",
-    size: "12.8 MB",
-    status: "Completed",
-    previewUrl: "#",
-  },
-  {
-    id: "v-3",
-    name: "Landing Page Explainer (Spanish)",
-    renderDate: "Mar 20, 2026",
-    duration: "1:20",
-    size: "85.2 MB",
-    status: "Completed",
-    previewUrl: "#",
-  }
-];
-
 export default function DownloadsPage() {
   const [search, setSearch] = useState("");
+  const [downloads, setDownloads] = useState<DownloadItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = mockDownloads.filter(d => 
+  useEffect(() => {
+    const user = auth.currentUser;
+    // For now, let's just fetch all completed projects, or filter by user if auth is ready
+    const q = query(
+      collection(db, "projects"),
+      where("status", "==", "completed")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name || "Untitled Video",
+          renderDate: data.render?.completedAt ? new Date(data.render.completedAt).toLocaleDateString() : "Recently",
+          duration: data.duration ? `${data.duration}s` : "0:30",
+          size: data.render?.size ? `${(data.render.size / (1024 * 1024)).toFixed(1)} MB` : "TBD",
+          status: "Completed",
+          previewUrl: data.render?.publicUrl || "#",
+        };
+      }) as DownloadItem[];
+      
+      setDownloads(items);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const filtered = downloads.filter(d => 
     d.name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -58,7 +61,6 @@ export default function DownloadsPage() {
       <DashboardNav />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 md:px-12 py-10">
-        {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
           <div className="space-y-3">
              <Link href="/dashboard" className="inline-flex items-center gap-2 text-rose-600 font-bold text-xs uppercase tracking-widest hover:gap-3 transition-all">
@@ -85,71 +87,79 @@ export default function DownloadsPage() {
           </div>
         </div>
 
-        {/* Video List (Long Boxes) */}
-        <div className="space-y-4">
-          {filtered.length > 0 ? (
-            filtered.map((video, index) => (
-              <motion.div 
-                key={video.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="group bg-white border border-gray-50 rounded-[2rem] p-5 flex items-center gap-6 hover:shadow-2xl hover:shadow-rose-600/5 hover:border-rose-100 transition-all duration-300"
-              >
-                {/* Preview Thumbnail Placeholder */}
-                <div className="w-24 h-16 rounded-2xl bg-slate-50 flex items-center justify-center relative overflow-hidden shrink-0 group-hover:bg-rose-50 transition-colors">
-                  <Video size={24} className="text-slate-200 group-hover:text-rose-200" />
-                  <div className="absolute inset-0 bg-rose-900/0 group-hover:bg-rose-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
-                    <PlayCircle size={20} className="text-white fill-rose-600" />
-                  </div>
-                </div>
+        {loading ? (
+             <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 size={40} className="animate-spin text-rose-600 mb-4" />
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Scanning library...</p>
+             </div>
+        ) : (
+            <div className="space-y-4">
+            {filtered.length > 0 ? (
+                filtered.map((video, index) => (
+                <motion.div 
+                    key={video.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="group bg-white border border-gray-50 rounded-[2rem] p-5 flex items-center gap-6 hover:shadow-2xl hover:shadow-rose-600/5 hover:border-rose-100 transition-all duration-300"
+                >
+                    <div className="w-24 h-16 rounded-2xl bg-slate-50 flex items-center justify-center relative overflow-hidden shrink-0 group-hover:bg-rose-50 transition-colors">
+                    <Video size={24} className="text-slate-200 group-hover:text-rose-200" />
+                    <div className="absolute inset-0 bg-rose-900/0 group-hover:bg-rose-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                        <PlayCircle size={20} className="text-white fill-rose-600" />
+                    </div>
+                    </div>
 
-                {/* Info Section */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-black text-gray-900 font-[var(--font-outfit)] truncate mb-1.5 group-hover:text-rose-600 transition-colors leading-tight">
-                    {video.name}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-5 text-[11px] font-black uppercase tracking-widest text-gray-400">
-                    <div className="flex items-center gap-1.5">
-                      <Calendar size={13} className="text-gray-300" />
-                      <span>{video.renderDate}</span>
+                    <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-black text-gray-900 font-[var(--font-outfit)] truncate mb-1.5 group-hover:text-rose-600 transition-colors leading-tight">
+                        {video.name}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-5 text-[11px] font-black uppercase tracking-widest text-gray-400">
+                        <div className="flex items-center gap-1.5">
+                        <Calendar size={13} className="text-gray-300" />
+                        <span>{video.renderDate}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                        <Clock size={13} className="text-gray-300" />
+                        <span>{video.duration}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                        <HardDrive size={13} className="text-gray-300" />
+                        <span>{video.size}</span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock size={13} className="text-gray-300" />
-                      <span>{video.duration}</span>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <HardDrive size={13} className="text-gray-300" />
-                      <span>{video.size}</span>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-3">
-                  <button className="flex items-center gap-2 px-6 py-3 bg-rose-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-900 transition-colors shadow-lg shadow-rose-100">
-                    <Download size={14} strokeWidth={3} />
-                    Download 4K
-                  </button>
-                  <button className="w-12 h-12 bg-gray-50 text-gray-300 rounded-2xl flex items-center justify-center hover:bg-gray-100 transition-all">
-                    <MoreVertical size={16} />
-                  </button>
+                    <div className="flex items-center gap-3">
+                    <a 
+                        href={video.previewUrl} 
+                        download={`video-${video.id}.mp4`}
+                        className="flex items-center gap-2 px-6 py-3 bg-rose-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-900 transition-colors shadow-lg shadow-rose-100"
+                    >
+                        <Download size={14} strokeWidth={3} />
+                        Download 4K
+                    </a>
+                    <button className="w-12 h-12 bg-gray-50 text-gray-300 rounded-2xl flex items-center justify-center hover:bg-gray-100 transition-all">
+                        <MoreVertical size={16} />
+                    </button>
+                    </div>
+                </motion.div>
+                ))
+            ) : (
+                <div className="py-20 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
+                    <HardDrive size={32} />
                 </div>
-              </motion.div>
-            ))
-          ) : (
-            <div className="py-20 flex flex-col items-center justify-center text-center space-y-4">
-               <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
-                  <HardDrive size={32} />
-               </div>
-               <div className="space-y-1">
-                 <h3 className="text-xl font-bold text-gray-900">No videos found</h3>
-                 <p className="text-gray-400 font-medium">Try searching for a different project name.</p>
-               </div>
+                <div className="space-y-1">
+                    <h3 className="text-xl font-bold text-gray-900">No videos found</h3>
+                    <p className="text-gray-400 font-medium">Try searching for a different project name.</p>
+                </div>
+                </div>
+            )}
             </div>
-          )}
-        </div>
+        )}
       </main>
     </div>
   );
 }
+

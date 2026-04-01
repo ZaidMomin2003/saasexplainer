@@ -6,6 +6,7 @@ import { ArrowRight, Zap, Globe, DollarSign, Check, Sparkles, Play, MessageSquar
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import * as gtag from "@/lib/gtag";
 
 export const Hero = () => {
   const { user } = useAuth();
@@ -167,6 +168,7 @@ export const Hero = () => {
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <Link
                 href="/signup"
+                onClick={() => gtag.event({ action: 'hero_sign_up_click', category: 'conversion' })}
                 className="w-full sm:w-auto bg-rose-600 text-white px-10 py-5 rounded-2xl font-black text-lg tracking-tight shadow-[0_25px_60px_-15px_rgba(225,29,72,0.4)] hover:bg-rose-700 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
               >
                 Start for free <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />

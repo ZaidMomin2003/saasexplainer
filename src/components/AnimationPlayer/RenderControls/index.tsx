@@ -43,20 +43,27 @@ export const RenderControls: React.FC<{
   }, [code, durationInFrames, fps, state.status, undo]);
 
   const handlePay = async () => {
-    // In a real-world scenario, you would call your backend to create a Dodo Checkout session
-    // const response = await fetch('/api/payments/create-session', { method: 'POST', body: JSON.stringify({ projectId }) });
-    // const { url } = await response.json();
-    // window.location.href = url;
-
-    // For this demonstration, we'll simulate the redirect to the render screen after "payment"
-    console.log("Redirecting to Dodo Payments...");
-    setIsDrawerOpen(false);
-    
-    // Simulate successful payment redirect back to our render page
-    setTimeout(() => {
-      router.push(`/render/${projectId}`);
-    }, 1000);
+    try {
+      console.log("Creating Dodo Checkout session...");
+      const response = await fetch('/api/payments/checkout', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId }) 
+      });
+      
+      const result = await response.json();
+      
+      if (result.type === 'success' && result.data.checkout_url) {
+        window.location.href = result.data.checkout_url;
+      } else {
+        throw new Error(result.message || "Failed to create checkout session");
+      }
+    } catch (err) {
+      console.error("Payment Error:", err);
+      alert("Failed to start payment. Please try again.");
+    }
   };
+
 
   if (
     state.status === "init" ||
