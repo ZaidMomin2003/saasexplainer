@@ -1,0 +1,89 @@
+
+:root {
+  --unfocused-border-color: rgba(0, 0, 0, 0.05);
+
+  --geist-border-radius: 12px;
+  --geist-quarter-pad: 6px;
+  --geist-half-pad: 12px;
+  --geist-pad: 24px;
+  --geist-font: "Outfit", "Inter", sans-serif;
+
+  --geist-error: #ff4d4d;
+
+  --radius: 1rem;
+
+  /* Force Light Mode Variables */
+  --background: #fdfdfc !important;
+  --background-elevated: #ffffff !important;
+  --background-editor: #ffffff !important;
+  --background-editor-header: #f8fafc !important;
+  --background-error: #fff1f2 !important;
+  
+  --foreground: #09090b !important;
+  --foreground-dim: #64748b !important;
+  
+  --primary: #4f46e5 !important;
+  --primary-hover: #4338ca !important;
+  --primary-foreground: #ffffff !important;
+  
+  --secondary: #f1f5f9 !important;
+  --secondary-foreground: #0f172a !important;
+  
+  --muted: #f8fafc !important;
+  --muted-foreground: #94a3b8 !important;
+  --muted-foreground-dim: #cbd5e1 !important;
+  
+  --accent: rgba(79, 70, 229, 0.05) !important;
+  --accent-foreground: #4f46e5 !important;
+  
+  --destructive: #ef4444 !important;
+  --destructive-foreground: #ffffff !important;
+  
+  --border: #e4e4e7 !important;
+  --border-dim: #f1f5f9 !important;
+  
+  --input: #ffffff !important;
+  --ring: #4f46e5 !important;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #fdfdfc !important;
+  color: #09090b !important;
+  font-family: "Outfit", "Inter", sans-serif;
+}
+
+/* Explicitly set light text colors for all common elements */
+h1, h2, h3, h4, h5, h6, p, span, div, textarea, input {
+  color: inherit;
+}
+
+.text-foreground { color: #09090b !important; }
+.text-muted-foreground { color: #64748b !important; }
+.text-accent-foreground { color: #4f46e5 !important; }
+
+.bg-background { background-color: #fdfdfc !important; }
+.bg-background-editor { background-color: #ffffff !important; }
+.bg-background-elevated { background-color: #ffffff !important; }
+
+@layer base {
+  * {
+    border-color: #e4e4e7;
+  }
+}
+
+/* Glassmorphism utility - Light Mode */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.glass-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+}

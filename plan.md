@@ -1,0 +1,11 @@
+To @Parvathi : Maam did you got your payment? I'm asking this because I'm not sure about the payment date. They said i may get it today. Please respond. Thanks
+
+
+Hey @Arshad, Sorry for not being there, i came to Delhi for a summit, I shall not be in office for 2 days. I shall be back on 30th. Regarding payments, its confirmed, AWS Halted your payyments. They did screenings from this many days and from your team, 3 members are going to lose there job with LoR and Certifications for further carrier. You can calm and be relaxed as i confirmed myself that your role is safe. Congratulations. But to be at right side, check if your IAM Admin panel is open. 
+
+
+To @Parvathi, Thanks for confirming maam. Maam i want to ask you something and please give me straight, Is my employment safe? I am grateful i did well this time but is it the same story next time as well? Because currently i am the only earning person in my family maam. I dont know how they fired 3 guys and i dont even know their names and all. Please let me know maam if my employment is safe?
+They called us to Bangalore to start work from office, this 13th. Are there any chances of postponing? And i didnt got any updates regarding payments from AWS. How can i know the status? Please let me know maam. Thanks.  
+
+Hello @Arshad, See Arshad, Employment here at AWS is totally give and take, i am here from past 3 years and i don't have any complains coz i always met my deadlines. But AWS Is so strict as well, they fire within seconds Especially new staff. And regarding salary, please keep asking AWS Seattle, maybe this guys are halting your salaries to test your patience and loyalty, thats 90% of case. They will see if you will apply somewhere else, coz for this post, they want someone loyal and dedicated, they don't want candidated who will abandon AWS for higher package. I assume thats the case with you as well as i saw them testing like this before entering contracts. I dont have any news about postponing, but i will ask. 
+Tomorrow lets do a meeting, you come alone with all updates. We will talk about next project as well. 
