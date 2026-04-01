@@ -44,7 +44,7 @@
     "lottie-web": "^5.13.0",
     "lucide-react": "^1.6.0",
     "luxon": "^3.7.2",
-    "monaco-editor": "^0.55.1",
+    "monaco-editor": "^0.53.0",
     "monaco-jsx-syntax-highlight": "^1.2.2",
     "nanoid": "^5.1.7",
     "next": "^16.2.1",
@@ -68,6 +68,7 @@
     "@types/node": "20.12.14",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
+    "@types/three": "^0.183.1",
     "prettier": "3.8.1",
     "raw-loader": "^4.0.2",
     "typescript": "5.9.3"

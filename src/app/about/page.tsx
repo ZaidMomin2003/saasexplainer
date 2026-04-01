@@ -49,7 +49,7 @@ export default function AboutPage() {
             <div className="absolute inset-0 bg-indigo-100/50 rounded-[3rem] transform -rotate-3 blur-sm" />
             <img 
               src="/zaid.jpg" 
-              alt="Zaid - Founder" 
+              alt="Arshad - Founder" 
               className="relative rounded-[3rem] object-cover w-full aspect-[4/5] shadow-2xl shadow-indigo-500/10 border border-gray-100 filter contrast-105"
             />
           </motion.div>
