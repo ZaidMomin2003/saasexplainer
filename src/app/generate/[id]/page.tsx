@@ -53,6 +53,7 @@ function GeneratePageContent() {
     setPendingMessage,
     clearPendingMessage,
     isFirstGeneration,
+    clearConversation,
   } = useConversationState(id);
 
   const { 
