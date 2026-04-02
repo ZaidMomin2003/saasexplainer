@@ -17,32 +17,46 @@ export async function GET(req: Request) {
 
   try {
     // 1. Fetch payments from Dodo
-    // For now, we fetch the latest payments and filter by metadata or email.
-    // Dodo's API allows listing payments.
-    const paymentsResponse = await client.payments.list({
+    // The DodoPayments SDK returns an auto-paginating async iterator for .list()
+    // We use a for-await loop to collect the payments we need.
+    const allPayments: any[] = [];
+    
+    // Using for-await which is the official way to iterate through Dodo paginated responses
+    const paymentsIterator = client.payments.list({
         page_size: 100,
     });
 
+    for await (const payment of paymentsIterator) {
+        // Collect up to 100 for filtering
+        allPayments.push(payment);
+        if (allPayments.length >= 100) break;
+    }
+
     // 2. Filter payments for this specific user
     // We check either the customer email or the metadata.userId we passed during checkout
-    const userPayments = paymentsResponse.data.filter((payment: any) => {
+    const userPayments = allPayments.filter((payment: any) => {
         const isEmailMatch = payment.customer?.email === userEmail;
         const isIdMatch = payment.metadata?.userId === userId;
         return isEmailMatch || isIdMatch;
     });
 
     // 3. Format for our UI
-    const formattedInvoices = userPayments.map((payment: any) => ({
-      id: `INV-${payment.payment_id.slice(-8).toUpperCase()}`,
-      amount: `$${(payment.amount / 100).toFixed(2)}`,
-      status: payment.status === 'succeeded' ? 'Paid' : payment.status,
-      date: new Date(payment.created_at).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      }),
-      receiptUrl: payment.receipt_url || '#',
-    }));
+    const formattedInvoices = userPayments.map((payment: any) => {
+      // Handle both .amount and .total_amount just in case
+      const amountVal = payment.total_amount || payment.amount || 0;
+      
+      return {
+        id: `INV-${payment.payment_id.slice(-8).toUpperCase()}`,
+        amount: `$${(amountVal / 100).toFixed(2)}`,
+        status: payment.status === 'succeeded' ? 'Paid' : payment.status,
+        date: new Date(payment.created_at).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        }),
+        receiptUrl: payment.receipt_url || payment.invoice_url || '#',
+      };
+    });
 
     return NextResponse.json({ invoices: formattedInvoices });
   } catch (error: any) {
