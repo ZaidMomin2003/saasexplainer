@@ -37,7 +37,8 @@ export async function POST(req: Request) {
 
   // 3. Trigger Logic
   // Only trigger for success events
-  if (event.type === 'payment.captured' || event.type === 'order.paid') {
+  const successfulEvents = ['payment.captured', 'order.paid', 'payment.succeeded', 'payment.succeed'];
+  if (successfulEvents.includes(event.type)) {
       console.log(`Payment confirmed for project: ${projectId}. Starting render...`);
       
       const projectRef = doc(db, "projects", projectId);

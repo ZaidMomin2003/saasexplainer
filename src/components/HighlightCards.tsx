@@ -31,10 +31,10 @@ export const HighlightCards = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="md:col-span-2 md:row-span-2 p-10 rounded-[3rem] bg-slate-50 border border-slate-100 flex flex-col justify-between group relative overflow-hidden transition-all duration-700 hover:border-rose-100 hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.05)]"
+            className="md:col-span-2 md:row-span-2 p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] bg-slate-50 border border-slate-100 flex flex-col justify-between group relative overflow-hidden transition-all duration-700 hover:border-rose-100 hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.05)]"
           >
             {/* Graphic Component: Prompt to Video */}
-            <div className="absolute top-10 right-10 w-48 h-64 bg-white rounded-3xl shadow-2xl border border-slate-100 p-4 flex flex-col gap-3 group-hover:-translate-y-4 transition-transform duration-700 rotate-6 group-hover:rotate-0">
+            <div className="absolute top-10 right-10 w-48 h-64 bg-white rounded-3xl shadow-2xl border border-slate-100 p-4 hidden md:flex flex-col gap-3 group-hover:-translate-y-4 transition-transform duration-700 rotate-6 group-hover:rotate-0">
                <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
                   <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Director Input</span>
@@ -66,7 +66,7 @@ export const HighlightCards = () => {
               <div className="w-16 h-16 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-rose-600 mb-8">
                 <Wand2 size={28} />
               </div>
-              <h3 className="text-4xl font-black tracking-tighter leading-none mb-4 italic italic-italic">
+              <h3 className="text-3xl md:text-4xl font-black tracking-tighter leading-none mb-4 italic">
                 Vibe edit the <br/> whole production.
               </h3>
               <p className="text-lg text-slate-500 font-medium max-w-sm">
@@ -130,7 +130,7 @@ export const HighlightCards = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
-            className="md:col-span-2 p-10 rounded-[2.5rem] bg-white border border-slate-100 flex items-center gap-10 group relative overflow-hidden transition-all duration-500 hover:border-slate-300"
+            className="md:col-span-2 p-8 md:p-10 rounded-[2.5rem] bg-white border border-slate-100 flex items-center gap-10 group relative overflow-hidden transition-all duration-500 hover:border-slate-300"
           >
              <div className="flex-1 relative z-10">
                 <div className="flex items-center gap-3 mb-6">
@@ -139,7 +139,7 @@ export const HighlightCards = () => {
                    </div>
                    <span className="text-[10px] font-black text-rose-600 uppercase tracking-[0.2em]">Unlimited Iterations</span>
                 </div>
-                <h3 className="text-3xl font-black tracking-tighter mb-4 leading-none italic italic-italic">
+                <h3 className="text-2xl md:text-3xl font-black tracking-tighter mb-4 leading-none italic">
                   Iterate until <br/> it hits right.
                 </h3>
                 <p className="text-base text-slate-500 font-medium max-w-[280px]">
@@ -163,7 +163,7 @@ export const HighlightCards = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.4 }}
-            className="md:col-span-4 p-12 rounded-[3.5rem] bg-gradient-to-br from-rose-600 to-rose-700 text-white flex flex-col md:flex-row items-center justify-between group relative overflow-hidden shadow-[0_40px_100px_-20px_rgba(225,29,72,0.3)] transition-all duration-700 hover:scale-[1.01]"
+            className="md:col-span-4 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] bg-gradient-to-br from-rose-600 to-rose-700 text-white flex flex-col md:flex-row items-center justify-between group relative overflow-hidden shadow-[0_40px_100px_-20px_rgba(225,29,72,0.3)] transition-all duration-700 hover:scale-[1.01]"
           >
              {/* Decorative Background Texture */}
              <div className="absolute inset-0 opacity-10 pointer-events-none mix-blend-overlay">
@@ -174,7 +174,7 @@ export const HighlightCards = () => {
                    <rect width="100%" height="100%" fill="url(#grid-white)" />
                 </svg>
              </div>
-
+ 
              <div className="relative z-10 mb-8 md:mb-0">
                 <div className="flex items-center gap-3 mb-4">
                    <div className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest">Fair Play Protocol</div>
@@ -182,7 +182,7 @@ export const HighlightCards = () => {
                       {[1,2,3,4,5].map(i => <Sparkles key={i} size={12} className="text-orange-300" />)}
                    </div>
                 </div>
-                <h3 className="text-4xl md:text-5xl font-black tracking-tighter leading-none mb-4 italic italic-italic">
+                <h3 className="text-3xl md:text-5xl font-black tracking-tighter leading-none mb-4 italic">
                   Commit only when <br/> you're 100% obsessed.
                 </h3>
                 <p className="text-lg text-white/80 font-medium max-w-xl">

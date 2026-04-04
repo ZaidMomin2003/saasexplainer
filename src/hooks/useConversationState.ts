@@ -6,6 +6,8 @@ import type {
   EditOperation,
 } from "@/types/conversation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
 
 export function useConversationState(projectId?: string) {
   const [state, setState] = useState<ConversationState & { futureMessages: ConversationMessage[] }>({
@@ -16,33 +18,58 @@ export function useConversationState(projectId?: string) {
     pendingMessage: undefined,
   });
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isMigrating, setIsMigrating] = useState(false);
 
-  // Load state on mount
+  // 1. Unified Sync & Migration Logic
   useEffect(() => {
-    if (projectId && typeof window !== "undefined") {
-      const stored = localStorage.getItem(`conv_state_${projectId}`);
-      if (stored) {
-        try {
-          setState((prev) => ({ ...prev, ...JSON.parse(stored) }));
-        } catch (e) {
-          console.error("Failed to parse stored conversation", e);
+    if (!projectId || typeof window === "undefined") {
+      setIsLoaded(true);
+      return;
+    }
+
+    const docRef = doc(db, "projects", projectId);
+    
+    // Listen for remote changes
+    const unsubscribe = onSnapshot(docRef, async (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const remoteState = data.conv_state;
+        
+        if (remoteState) {
+          // If remote state exists, use it as source of truth
+          setState((prev) => ({ ...prev, ...remoteState }));
+          setIsLoaded(true);
+        } else if (!isMigrating) {
+          // If no remote state, check if we need to migrate from localStorage
+          const stored = localStorage.getItem(`conv_state_${projectId}`);
+          if (stored) {
+            try {
+              const localData = JSON.parse(stored);
+              if (localData && localData.messages && localData.messages.length > 0) {
+                console.log(`[Sync] Migrating LocalStorage for project ${projectId} to Firestore...`);
+                setIsMigrating(true);
+                await updateDoc(docRef, { conv_state: localData });
+                setState((prev) => ({ ...prev, ...localData }));
+              }
+            } catch (e) {
+              console.error("Migration failed", e);
+            }
+          }
+          setIsLoaded(true);
         }
+      } else {
+        setIsLoaded(true);
       }
-    }
-    setIsLoaded(true);
-  }, [projectId]);
+    });
 
-  // Save state tracking
-  useEffect(() => {
-    if (isLoaded && projectId && typeof window !== "undefined") {
-      localStorage.setItem(`conv_state_${projectId}`, JSON.stringify(state));
-    }
-  }, [state, projectId, isLoaded]);
+    return () => unsubscribe();
+  }, [projectId, isMigrating]);
+
   // Track the last AI-generated code to detect manual edits
   const lastAiCodeRef = useRef<string>("");
 
   const addUserMessage = useCallback(
-    (content: string, attachedImages?: string[]) => {
+    async (content: string, attachedImages?: string[]) => {
       const message: ConversationMessage = {
         id: `user-${Date.now()}`,
         role: "user",
@@ -50,18 +77,37 @@ export function useConversationState(projectId?: string) {
         timestamp: Date.now(),
         attachedImages,
       };
-      setState((prev) => ({
-        ...prev,
-        messages: [...prev.messages, message],
-        futureMessages: [], // Clear redo history on new action
-      }));
+
+      const newState = {
+        ...state,
+        messages: [...state.messages, message],
+        futureMessages: [],
+      };
+
+      setState(newState);
+
+      // Sync to Firestore
+      if (projectId) {
+        try {
+          await updateDoc(doc(db, "projects", projectId), {
+            conv_state: {
+              messages: newState.messages,
+              hasManualEdits: newState.hasManualEdits,
+              lastGenerationTimestamp: newState.lastGenerationTimestamp
+            }
+          });
+        } catch (err) {
+          console.error("Firestore sync failed:", err);
+        }
+      }
+      
       return message.id;
     },
-    [],
+    [state, projectId],
   );
 
   const addAssistantMessage = useCallback(
-    (content: string, codeSnapshot: string, metadata?: AssistantMetadata) => {
+    async (content: string, codeSnapshot: string, metadata?: AssistantMetadata) => {
       const message: ConversationMessage = {
         id: `assistant-${Date.now()}`,
         role: "assistant",
@@ -70,17 +116,36 @@ export function useConversationState(projectId?: string) {
         codeSnapshot,
         metadata,
       };
+      
       lastAiCodeRef.current = codeSnapshot;
-      setState((prev) => ({
-        ...prev,
-        messages: [...prev.messages, message],
-        futureMessages: [], // Clear redo history on new action
+      const newState = {
+        ...state,
+        messages: [...state.messages, message],
+        futureMessages: [],
         hasManualEdits: false,
         lastGenerationTimestamp: Date.now(),
-      }));
+      };
+
+      setState(newState);
+
+      // Sync to Firestore
+      if (projectId) {
+        try {
+          await updateDoc(doc(db, "projects", projectId), {
+            conv_state: {
+              messages: newState.messages,
+              hasManualEdits: newState.hasManualEdits,
+              lastGenerationTimestamp: newState.lastGenerationTimestamp
+            }
+          });
+        } catch (err) {
+          console.error("Firestore assistant sync failed:", err);
+        }
+      }
+
       return message.id;
     },
-    [],
+    [state, projectId],
   );
 
   const addErrorMessage = useCallback(
@@ -106,17 +171,21 @@ export function useConversationState(projectId?: string) {
     [],
   );
 
-  const markManualEdit = useCallback((currentCode: string) => {
+  const markManualEdit = useCallback(async (currentCode: string) => {
     // Only mark as manual edit if code differs from last AI generation
     if (currentCode !== lastAiCodeRef.current && lastAiCodeRef.current !== "") {
-      setState((prev) => ({
-        ...prev,
-        hasManualEdits: true,
-      }));
+      const newState = { ...state, hasManualEdits: true };
+      setState(newState);
+      
+      if (projectId) {
+         await updateDoc(doc(db, "projects", projectId), {
+            "conv_state.hasManualEdits": true
+         }).catch(console.error);
+      }
     }
-  }, []);
+  }, [state, projectId]);
 
-  const clearConversation = useCallback(() => {
+  const clearConversation = useCallback(async () => {
     lastAiCodeRef.current = "";
     const newState = {
       messages: [],
@@ -126,8 +195,15 @@ export function useConversationState(projectId?: string) {
       pendingMessage: undefined,
     };
     setState(newState);
-    if (projectId && typeof window !== "undefined") {
-      localStorage.setItem(`conv_state_${projectId}`, JSON.stringify(newState));
+    
+    if (projectId) {
+      await updateDoc(doc(db, "projects", projectId), {
+        conv_state: {
+          messages: [],
+          hasManualEdits: false,
+          lastGenerationTimestamp: null
+        }
+      }).catch(console.error);
     }
   }, [projectId]);
 
@@ -155,7 +231,7 @@ export function useConversationState(projectId?: string) {
       .filter((m) => m.role === "user" || m.role === "assistant")
       .map((m) => ({
         role: m.role as "user" | "assistant",
-        content: m.role === "user" ? m.content : "[Generated Code]",
+        content: m.role === "user" ? m.content : (m.content || "[Generated Code]"),
         // Include attached images for user messages so the AI remembers what was shared
         ...(m.role === "user" && m.attachedImages && m.attachedImages.length > 0
           ? { attachedImages: m.attachedImages }
@@ -189,7 +265,7 @@ export function useConversationState(projectId?: string) {
     return undefined;
   }, [state.messages]);
 
-  const undo = useCallback(() => {
+  const undo = useCallback(async () => {
     if (state.messages.length < 2) return null;
 
     // Find the last assistant/user pair
@@ -208,11 +284,18 @@ export function useConversationState(projectId?: string) {
     const userMsg = newMessages.pop();
     if (userMsg) undone.unshift(userMsg);
 
-    setState((prev) => ({
-      ...prev,
+    const newState = {
+      ...state,
       messages: newMessages,
-      futureMessages: [...undone, ...prev.futureMessages],
-    }));
+      futureMessages: [...undone, ...state.futureMessages],
+    };
+    setState(newState);
+
+    if (projectId) {
+      await updateDoc(doc(db, "projects", projectId), {
+        "conv_state.messages": newMessages
+      }).catch(console.error);
+    }
 
     // Return the code snapshot of the NEW last assistant message
     for (let i = newMessages.length - 1; i >= 0; i--) {
@@ -221,9 +304,9 @@ export function useConversationState(projectId?: string) {
       }
     }
     return ""; // Return empty string if no code snapshots remain
-  }, [state.messages]);
+  }, [state, projectId]);
 
-  const redo = useCallback(() => {
+  const redo = useCallback(async () => {
     if (state.futureMessages.length < 1) return null;
 
     const newFuture = [...state.futureMessages];
@@ -240,14 +323,21 @@ export function useConversationState(projectId?: string) {
     const assistantMsg = newFuture.shift();
     if (assistantMsg) redone.push(assistantMsg);
 
-    setState((prev) => ({
-      ...prev,
-      messages: [...prev.messages, ...redone],
+    const newState = {
+      ...state,
+      messages: [...state.messages, ...redone],
       futureMessages: newFuture,
-    }));
+    };
+    setState(newState);
+
+    if (projectId) {
+      await updateDoc(doc(db, "projects", projectId), {
+        "conv_state.messages": newState.messages
+      }).catch(console.error);
+    }
 
     return assistantMsg?.codeSnapshot || "";
-  }, [state.futureMessages]);
+  }, [state, projectId]);
 
   const canUndo = state.messages.length >= 2;
   const canRedo = state.futureMessages.length >= 2;
@@ -270,4 +360,5 @@ export function useConversationState(projectId?: string) {
     canRedo,
     isFirstGeneration: state.messages.length === 0,
   }
-};
+}
+;

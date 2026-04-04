@@ -72,13 +72,30 @@ export const Showcase = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.2 }}
-              className="group relative cursor-pointer"
+              className="group relative cursor-pointer flex flex-col"
               onClick={() => setSelectedProject(project)}
             >
-              <div className="relative aspect-[16/10] rounded-[2.5rem] overflow-hidden bg-white shadow-2xl border border-slate-200/50 transition-all duration-700 group-hover:shadow-rose-500/10 group-hover:border-rose-500/20">
-                {/* Device Frame UI Mockup */}
+              {/* Mobile Text Info (Visible only on mobile) */}
+              <div className="md:hidden mb-6 px-2">
+                 <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-1 block">
+                    {project.category}
+                 </span>
+                 <h3 className="text-3xl font-black text-slate-950 tracking-tight mb-4">
+                    {project.title}
+                 </h3>
+                 <div className="flex flex-wrap gap-2">
+                    {project.tags.map((tag, i) => (
+                      <span key={i} className="px-3 py-1 rounded-full bg-slate-100 text-[9px] font-bold text-slate-600 uppercase tracking-wider border border-slate-200">
+                        {tag}
+                      </span>
+                    ))}
+                 </div>
+              </div>
+
+              <div className="relative aspect-[16/10] rounded-3xl md:rounded-[2.5rem] overflow-hidden bg-white shadow-2xl border border-slate-200/50 transition-all duration-700 group-hover:shadow-rose-500/10 group-hover:border-rose-500/20">
+                {/* Device Frame UI Mockup (Desktop only) */}
                 <div className="absolute inset-0 bg-slate-950 flex flex-col pt-4">
-                   <div className="flex items-center justify-center gap-1.5 mb-4 px-4 overflow-hidden">
+                   <div className="hidden md:flex items-center justify-center gap-1.5 mb-4 px-4 overflow-hidden">
                       <div className="w-2 h-2 rounded-full bg-slate-800 shrink-0" />
                       <div className="w-12 h-1 bg-slate-800 rounded-full shrink-0" />
                    </div>
@@ -88,8 +105,8 @@ export const Showcase = () => {
                         className="absolute inset-0 w-full h-full scale-[1.01]"
                         allow="autoplay; fullscreen"
                       />
-                      {/* Play Button Overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center">
+                      {/* Play Button Overlay (Desktop only) */}
+                      <div className="absolute inset-0 hidden md:flex items-center justify-center">
                          <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center scale-90 group-hover:scale-110 transition-transform duration-500">
                             <Play size={32} className="text-white fill-white ml-1" />
                          </div>
@@ -97,16 +114,16 @@ export const Showcase = () => {
                    </div>
                 </div>
 
-                {/* Text Overlays */}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80 pointer-events-none" />
+                {/* Text Overlays (Desktop only) */}
+                <div className="absolute inset-0 hidden md:block bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80 pointer-events-none" />
                 
-                <div className="absolute inset-0 p-8 flex flex-col justify-end pointer-events-none">
-                   <div className="flex items-start justify-between">
+                <div className="absolute inset-0 p-6 md:p-8 hidden md:flex flex-col justify-end pointer-events-none">
+                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 md:gap-0">
                       <div>
                         <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1 block">
                           {project.category}
                         </span>
-                        <h3 className="text-3xl font-black text-white tracking-tight mb-4">
+                        <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-4">
                           {project.title}
                         </h3>
                         <div className="flex flex-wrap gap-2">
@@ -172,7 +189,7 @@ export const Showcase = () => {
                 </div>
 
                 {/* Bottom Metadata Info */}
-                <div className="absolute inset-x-0 bottom-0 p-8 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none">
+                <div className="absolute inset-x-0 bottom-0 p-6 md:p-8 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none">
                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                       <div>
                         <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1 block">

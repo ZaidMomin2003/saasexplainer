@@ -82,40 +82,37 @@ function PlanContent() {
   const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
   const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
-  // 1. Initial Project Fetch (Firebase)
+  // 1. Unified Project Sync & Migration
   useEffect(() => {
     if (!id) return;
     
-    // We only fetch once to get Name and Duration
-    const fetchProject = async () => {
-      try {
-        const docRef = doc(db, "projects", id as string);
-        const docSnap = await getDoc(docRef);
-        
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setProject(data);
-          
-          // Load local history if it exists
-          const localKey = `chat_history_${id}`;
-          const localExtractKey = `chat_extraction_${id}`;
-          const savedMessages = localStorage.getItem(localKey);
-          const savedExtraction = localStorage.getItem(localExtractKey);
+    const docRef = doc(db, "projects", id as string);
+    const unsubscribe = onSnapshot(docRef, async (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setProject(data);
 
-          if (savedMessages) {
-            setMessages(JSON.parse(savedMessages));
-          } else {
-            // Initial assistant message
-            setMessages([
-              { 
-                role: 'assistant', 
-                content: `Hello! I'm your Creative Director. I've got your project <b>"${data.name}"</b> locked in for <b>${data.duration} seconds</b>. To start building our cinematic vision, what is your <b>website URL</b> and what is the <b>primary goal</b> of this video?` 
-              }
-            ]);
+        // -- Sync Creative Brief --
+        if (data.creativeBrief) {
+          setCreativeBrief(data.creativeBrief);
+        } else {
+          const localBrief = localStorage.getItem(`creative_brief_${id}`);
+          if (localBrief) {
+             setCreativeBrief(localBrief);
+             await updateDoc(docRef, { creativeBrief: localBrief });
           }
+        }
 
+        // -- Sync Extraction State --
+        if (data.extraction) {
+          setExtraction(data.extraction);
+        } else {
+          const localExtractKey = `chat_extraction_${id}`;
+          const savedExtraction = localStorage.getItem(localExtractKey);
           if (savedExtraction) {
-            setExtraction(JSON.parse(savedExtraction));
+            const parsed = JSON.parse(savedExtraction);
+            setExtraction(parsed);
+            await updateDoc(docRef, { extraction: parsed });
           } else {
             setExtraction({
               name: data.name,
@@ -124,28 +121,61 @@ function PlanContent() {
             });
           }
         }
-      } catch (err) {
-        console.error("Permission or fetch error:", err);
-      } finally {
+
+        // -- Sync Messages --
+        if (data.plan_chat) {
+          setMessages(data.plan_chat);
+        } else {
+          const localMessages = localStorage.getItem(`chat_history_${id}`);
+          if (localMessages) {
+            const parsed = JSON.parse(localMessages);
+            setMessages(parsed);
+            await updateDoc(docRef, { plan_chat: parsed });
+          } else {
+            setMessages([
+              { 
+                role: 'assistant', 
+                content: `Hello! I'm your Creative Director. I've got your project <b>"${data.name}"</b> locked in for <b>${data.duration} seconds</b>. To start building our cinematic vision, what is your <b>website URL</b> and what is the <b>primary goal</b> of this video?` 
+              }
+            ]);
+          }
+        }
+        
         setLoading(false);
       }
-    };
+    });
 
-    fetchProject();
+    return () => unsubscribe();
   }, [id]);
 
-  // 2. Persist to LocalStorage whenever state changes
-  useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem(`chat_history_${id}`, JSON.stringify(messages));
-    }
-  }, [messages, id]);
+  // Sync messages to Firestore
+  const updateMessages = async (updater: (prev: Message[]) => Message[]) => {
+    setMessages(prev => {
+      const next = updater(prev);
+      if (id) {
+        updateDoc(doc(db, "projects", id as string), { plan_chat: next }).catch(console.error);
+      }
+      return next;
+    });
+  };
 
-  useEffect(() => {
-    if (extraction.name) {
-      localStorage.setItem(`chat_extraction_${id}`, JSON.stringify(extraction));
+  // Sync state changes to Firestore
+  const updateBrief = async (val: string) => {
+    setCreativeBrief(val);
+    if (id) {
+       await updateDoc(doc(db, "projects", id as string), { creativeBrief: val }).catch(console.error);
     }
-  }, [extraction, id]);
+  };
+
+  const updateExtraction = async (updater: (prev: ExtractionState) => ExtractionState) => {
+    setExtraction(prev => {
+      const next = updater(prev);
+      if (id) {
+        updateDoc(doc(db, "projects", id as string), { extraction: next }).catch(console.error);
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -165,7 +195,7 @@ function PlanContent() {
       });
       const data = await res.json();
       if (data.enhancedPrompt) {
-        setCreativeBrief(data.enhancedPrompt);
+        updateBrief(data.enhancedPrompt);
       }
     } catch (err) {
       console.error("Enhance failed:", err);
@@ -175,14 +205,17 @@ function PlanContent() {
   };
 
   const handleRemoveAsset = (type: 'logo' | 'screenshot', index?: number) => {
-    if (type === 'logo') {
-      setExtraction(prev => ({ ...prev, logo: undefined }));
-    } else if (index !== undefined) {
-      setExtraction(prev => ({
-        ...prev,
-        screenshots: prev.screenshots.filter((_, i) => i !== index)
-      }));
-    }
+    updateExtraction(prev => {
+      if (type === 'logo') {
+        return { ...prev, logo: undefined };
+      } else if (index !== undefined) {
+        return {
+          ...prev,
+          screenshots: prev.screenshots.filter((_, i) => i !== index)
+        };
+      }
+      return prev;
+    });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "logo" | "screenshot") => {
@@ -194,11 +227,11 @@ function PlanContent() {
       reader.onloadend = () => {
         const base64 = reader.result as string;
         if (type === "logo") {
-          setExtraction(prev => ({ ...prev, logo: base64 }));
-          setMessages(prev => [...prev, { role: 'user', content: "I've uploaded the master logo.", images: [base64] }]);
+          updateExtraction(prev => ({ ...prev, logo: base64 }));
+          updateMessages(prev => [...prev, { role: 'user', content: "I've uploaded the master logo.", images: [base64] }]);
         } else {
-          setExtraction(prev => ({ ...prev, screenshots: [...prev.screenshots, base64] }));
-          setMessages(prev => [...prev, { role: 'user', content: "Here is a screenshot of our dashboard.", images: [base64] }]);
+          updateExtraction(prev => ({ ...prev, screenshots: [...prev.screenshots, base64] }));
+          updateMessages(prev => [...prev, { role: 'user', content: "Here is a screenshot of our dashboard.", images: [base64] }]);
         }
       };
       reader.readAsDataURL(file);
@@ -315,7 +348,7 @@ function PlanContent() {
                <div className="w-full bg-white rounded-3xl p-4 shadow-xl border border-slate-100 relative group transition-all">
                   <textarea 
                     value={creativeBrief}
-                    onChange={(e) => setCreativeBrief(e.target.value)}
+                    onChange={(e) => updateBrief(e.target.value)}
                     placeholder="Ask AI to architect a video or make a request..."
                     className="w-full h-32 bg-transparent text-lg font-medium outline-none placeholder:text-slate-200 resize-none leading-relaxed text-slate-800 p-2"
                   />
@@ -388,7 +421,7 @@ function PlanContent() {
                   ].map((card, i) => (
                      <button 
                         key={i} 
-                        onClick={() => setCreativeBrief(card.prompt)}
+                        onClick={() => updateBrief(card.prompt)}
                         className="flex-1 px-4 py-3 bg-white border border-slate-100 shadow-sm rounded-2xl text-[10px] font-bold text-slate-400 hover:border-rose-200 hover:text-rose-600 transition-all text-center flex items-center justify-center gap-2 group"
                      >
                         {card.label}

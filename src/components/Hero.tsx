@@ -245,7 +245,7 @@ export const Hero = () => {
           </div>
 
           {/* Video Container */}
-          <div className="w-full aspect-video bg-slate-950 rounded-[2.5rem] overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)] relative border-8 border-white/50 backdrop-blur-3xl group-hover:border-rose-500/10 transition-all duration-700">
+          <div className="w-full aspect-video bg-slate-950 rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)] relative border-4 md:border-8 border-white/50 backdrop-blur-3xl group-hover:border-rose-500/10 transition-all duration-700">
              <iframe 
                src="https://player.vimeo.com/video/824804225?autoplay=1&loop=1&background=1&muted=1" 
                className="absolute inset-0 w-full h-full scale-[1.01]"
@@ -253,9 +253,9 @@ export const Hero = () => {
                allowFullScreen
              />
              
-             {/* Gradient Overlays for Depth */}
-             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-slate-950/10 pointer-events-none" />
-             <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-slate-950/80 to-transparent pointer-events-none" />
+             {/* Gradient Overlays for Depth (Hidden on mobile) */}
+             <div className="absolute inset-0 hidden md:block bg-gradient-to-t from-slate-950/40 via-transparent to-slate-950/10 pointer-events-none" />
+             <div className="absolute inset-x-0 bottom-0 h-32 hidden md:block bg-gradient-to-t from-slate-950/80 to-transparent pointer-events-none" />
           </div>
 
           {/* Decorative Corner Lights */}
