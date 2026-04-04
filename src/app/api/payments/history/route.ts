@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import DodoPayments from 'dodopayments';
 
 const client = new DodoPayments({
-  bearerToken: process.env.DODO_PAYMENTS_API_KEY!,
+  bearerToken: process.env.DODOPAYMENTS_API_KEY!,
   environment: process.env.NODE_ENV === 'production' ? 'live_mode' : 'test_mode',
 });
 

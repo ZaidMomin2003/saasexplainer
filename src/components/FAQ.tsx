@@ -18,7 +18,7 @@ const faqs = [
     answer: "Generating the video timeline takes less than 10 minutes. Rendering the final 1080p MP4 usually takes about 2-3 minutes depending on server load."
   },
   {
-    question: "Why only $16?",
+    question: "Why only $29?",
     answer: "We built a programmatic rendering engine. Since we don't have to hire human motion designers to drag keyframes in After Effects, we can pass those massive savings directly to you at a fraction of the market cost."
   }
 ];

@@ -132,7 +132,7 @@ export const Hero = () => {
         >
           <div className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
           <span className="text-[13px] font-bold text-gray-800 tracking-tight leading-none">
-            Join <span className="text-rose-600">120+ founders</span> building their first videos
+            Join the <span className="text-rose-600">Waitlist</span> for early access
           </span>
           <ArrowRight size={14} className="text-gray-400 ml-1" />
         </motion.div>
@@ -154,7 +154,7 @@ export const Hero = () => {
           transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="text-xl md:text-2xl text-gray-500 font-medium tracking-tight mb-14 max-w-3xl leading-relaxed"
         >
-          Vibe edit your SaaS explainer video with Speech and text—<span className="text-gray-950 font-black tracking-tight">no screen record required</span>. <span className="text-gray-950 font-black tracking-tight">Start for free today</span> and get your first video in minutes. Edit unlimited and export only if you like it for <span className="text-rose-600 font-black underline decoration-rose-200 underline-offset-4">just $16</span>.
+          Vibe edit your SaaS explainer video with Speech and text—<span className="text-gray-950 font-black tracking-tight">no screen record required</span>. <span className="text-gray-950 font-black tracking-tight">Start for free today</span> and get your first video in minutes. Edit unlimited and export only if you like it for <span className="text-rose-600 font-black underline decoration-rose-200 underline-offset-4">just $29</span>.
         </motion.p>
 
         {/* ── Primary Actions ── */}
@@ -197,7 +197,7 @@ export const Hero = () => {
                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.8 }}
                className="flex items-center gap-2 px-5 py-2.5 bg-gray-950 rounded-xl border border-gray-800 shadow-xl shadow-black/20"
              >
-                <span className="text-sm font-bold text-white tracking-tight">$16 Per Export</span>
+                <span className="text-sm font-bold text-white tracking-tight">$29 Per Export</span>
                 <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
                    <Sparkles size={12} className="text-rose-400" />
                 </div>
@@ -206,30 +206,61 @@ export const Hero = () => {
         </div>
       </div>
 
-      {/* ── Full Width Widescreen Preview ── */}
+      {/* ── High-Fidelity Vimeo Preview ── */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.2, delay: 0.4 }}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1, delay: 0.2 }}
         id="video-preview"
-        className="w-full relative px-0 scroll-mt-32"
+        className="w-full max-w-7xl mx-auto px-6 relative scroll-mt-32 mb-20"
       >
-        <div className="w-full aspect-[21/9] bg-gray-950 relative group cursor-pointer overflow-hidden border-y border-gray-100/10">
-          <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity z-10 text-center">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-20 h-20 rounded-full glass flex items-center justify-center shadow-xl scale-90 sm:scale-100">
-                <Play size={32} className="text-gray-900 fill-current ml-1" />
-              </div>
-              <span className="text-white font-black text-xs uppercase tracking-widest bg-rose-600 px-4 py-2 rounded-full shadow-lg">Watch 2min Trailer</span>
+        <div className="relative group">
+          {/* Floating UI Badges Around Video */}
+          <div className="absolute -top-6 -left-6 z-20 hidden md:flex flex-col gap-2 pointer-events-none">
+            <motion.div 
+               animate={{ x: [-5, 5, -5] }} transition={{ duration: 4, repeat: Infinity }}
+               className="bg-white px-4 py-2 rounded-xl shadow-2xl border border-rose-100 flex items-center gap-2"
+            >
+               <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+               <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest leading-none">Rendering Live</span>
+            </motion.div>
+            <div className="bg-slate-950 px-4 py-2 rounded-xl shadow-2xl border border-slate-800 flex items-center gap-2">
+               <Zap size={12} className="text-amber-400 fill-amber-400" />
+               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">0.2s Avg. Frame Rate</span>
             </div>
           </div>
-          <img
-            className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105"
-            alt="SaaS Video Preview"
-            src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2564&auto=format&fit=crop"
-          />
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+          <div className="absolute -bottom-6 -right-6 z-20 hidden md:flex flex-col gap-2 pointer-events-none items-end">
+            <div className="bg-white px-4 py-2 rounded-xl shadow-2xl border border-emerald-100 flex items-center gap-2">
+               <Check size={12} className="text-emerald-600" />
+               <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">Made with Bake Studio</span>
+            </div>
+            <motion.div 
+               animate={{ scale: [0.95, 1, 0.95] }} transition={{ duration: 3, repeat: Infinity }}
+               className="bg-rose-600 px-4 py-2 rounded-xl shadow-2xl flex items-center gap-2"
+            >
+               <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none">Hollywood Grade Export</span>
+            </motion.div>
+          </div>
+
+          {/* Video Container */}
+          <div className="w-full aspect-video bg-slate-950 rounded-[2.5rem] overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)] relative border-8 border-white/50 backdrop-blur-3xl group-hover:border-rose-500/10 transition-all duration-700">
+             <iframe 
+               src="https://player.vimeo.com/video/824804225?autoplay=1&loop=1&background=1&muted=1" 
+               className="absolute inset-0 w-full h-full scale-[1.01]"
+               allow="autoplay; fullscreen; picture-in-picture" 
+               allowFullScreen
+             />
+             
+             {/* Gradient Overlays for Depth */}
+             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-slate-950/10 pointer-events-none" />
+             <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-slate-950/80 to-transparent pointer-events-none" />
+          </div>
+
+          {/* Decorative Corner Lights */}
+          <div className="absolute top-0 left-0 w-64 h-64 bg-rose-600/10 blur-[100px] pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-64 h-64 bg-orange-600/10 blur-[100px] pointer-events-none" />
         </div>
       </motion.div>
 

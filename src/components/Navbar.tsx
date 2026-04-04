@@ -68,6 +68,7 @@ export const Navbar = () => {
             <div className="hidden md:flex items-center gap-8 text-[13px] font-semibold text-gray-500">
               <Link href="/#how-it-works" className="hover:text-gray-900 transition-colors">How it works</Link>
               <Link href="/#features" className="hover:text-gray-900 transition-colors">Features</Link>
+              <Link href="/#showcase" className="hover:text-gray-900 transition-colors">Showcase</Link>
               <Link href="/#faq" className="hover:text-gray-900 transition-colors">FAQ</Link>
               
               <div className="flex items-center gap-3 pl-4 border-l border-gray-100">
@@ -122,6 +123,7 @@ export const Navbar = () => {
             <div className="px-6 py-8 flex flex-col gap-6 text-center">
               <Link href="/#how-it-works" onClick={() => setIsOpen(false)} className="text-gray-900 font-bold text-lg">How it works</Link>
               <Link href="/#features" onClick={() => setIsOpen(false)} className="text-gray-900 font-bold text-lg">Features</Link>
+              <Link href="/#showcase" onClick={() => setIsOpen(false)} className="text-gray-900 font-bold text-lg">Showcase</Link>
               <Link href="/#faq" onClick={() => setIsOpen(false)} className="text-gray-900 font-bold text-lg">FAQ</Link>
               <div className="flex flex-col gap-3 mt-4 pt-6 border-t border-gray-100">
                 {user ? (

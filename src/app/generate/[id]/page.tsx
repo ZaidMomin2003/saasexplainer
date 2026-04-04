@@ -22,7 +22,7 @@ const MAX_CORRECTION_ATTEMPTS = 3;
 function GeneratePageContent() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  
+
   const [project, setProject] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentFrame, setCurrentFrame] = useState(0);
@@ -61,10 +61,10 @@ function GeneratePageContent() {
     clearConversation,
   } = useConversationState(id);
 
-  const { 
-    discoveryStep, 
-    assets, 
-    script 
+  const {
+    discoveryStep,
+    assets,
+    script
   } = useProjectState(messages);
 
   const {
@@ -141,30 +141,48 @@ function GeneratePageContent() {
     }
   }, [isStreaming, markAsAiGenerated, compileCode]);
 
+  // Sync activeSceneIndex with conversation history on load
   useEffect(() => {
-    // Hollywood Workflow: Auto-start Scene 1 if no code exists
-    if (project?.scenes && project.scenes.length > 0 && !hasGeneratedOnce && !isStreaming && !hasAutoStarted) {
-      setHasAutoStarted(true);
-      const firstScene = project.scenes[0];
-      
-      // We wait a beat for the sidebar to be ready
-      setTimeout(() => {
-        chatSidebarRef.current?.triggerGeneration({
-          customPrompt: `INITIAL FORGE: Implement Scene 1: "${firstScene.title}". Duration: ${firstScene.duration}s. Visual Instructions: ${firstScene.prompt}`,
-          forceInitial: true
-        });
-      }, 1000);
+    if (messages.length > 0 && project?.scenes) {
+      let maxIndex = 0;
+      messages.forEach(m => {
+        if (m.role === "user") {
+          const match = m.content.match(/Implement Scene (\d+)/);
+          if (match) {
+            const index = parseInt(match[1]) - 1;
+            if (index > maxIndex) maxIndex = index;
+          }
+        }
+      });
+      setActiveSceneIndex(maxIndex);
     }
-  }, [project, hasGeneratedOnce, isStreaming, hasAutoStarted]);
+  }, [messages, project?.scenes]);
+
+  /* Hollywood Workflow: Auto-start Scene 1 removed as per user request to avoid re-pasting prompts on visit */
+  /*
+    useEffect(() => {
+      if (project?.scenes && project.scenes.length > 0 && !hasGeneratedOnce && !isStreaming && !hasAutoStarted) {
+        setHasAutoStarted(true);
+        const firstScene = project.scenes[0];
+        
+        setTimeout(() => {
+          chatSidebarRef.current?.triggerGeneration({
+            customPrompt: `INITIAL FORGE: Implement Scene 1: "${firstScene.title}". Duration: ${firstScene.duration}s. Visual Instructions: ${firstScene.prompt}`,
+            forceInitial: true
+          });
+        }, 1000);
+      }
+    }, [project, hasGeneratedOnce, isStreaming, hasAutoStarted]);
+  */
 
   const handleNextScene = useCallback(() => {
     if (!project?.scenes || activeSceneIndex >= project.scenes.length - 1) return;
-    
+
     const nextIndex = activeSceneIndex + 1;
     const nextScene = project.scenes[nextIndex];
-    
+
     setActiveSceneIndex(nextIndex);
-    
+
     chatSidebarRef.current?.triggerGeneration({
       customPrompt: `FORGE NEXT SCENE: Implement Scene ${nextIndex + 1}: "${nextScene.title}". Duration: ${nextScene.duration}s. Visual Instructions: ${nextScene.prompt}. IMPORTANT: Integrate this scene seamlessly into the existing timeline (likely using <Series> or sequential blocks). DO NOT remove previous scenes.`,
     });
@@ -248,13 +266,13 @@ function GeneratePageContent() {
                 <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest border border-rose-200">Hollywood Studio</span>
               </h1>
               <div className="flex items-center gap-2 mt-1">
-                 <p className="text-[11px] text-slate-500 font-medium font-mono uppercase tracking-widest leading-none">
-                   {project?.duration || 30}s • 30fps
-                 </p>
-                 <div className="h-1 w-1 bg-slate-300 rounded-full" />
-                 <p className="text-[11px] text-rose-600 font-black uppercase tracking-widest leading-none">
-                    Scene {activeSceneIndex + 1} of {project?.scenes?.length || "?"}
-                 </p>
+                <p className="text-[11px] text-slate-500 font-medium font-mono uppercase tracking-widest leading-none">
+                  {project?.duration || 30}s • 30fps
+                </p>
+                <div className="h-1 w-1 bg-slate-300 rounded-full" />
+                <p className="text-[11px] text-rose-600 font-black uppercase tracking-widest leading-none">
+                  Scene {activeSceneIndex + 1} of {project?.scenes?.length || "?"}
+                </p>
               </div>
             </div>
           </div>
@@ -277,11 +295,11 @@ function GeneratePageContent() {
               </button>
               <button
                 onClick={() => {
-                   const nextCode = redo();
-                   if (nextCode !== null) {
-                     setCode(nextCode);
-                     compileCode(nextCode);
-                   }
+                  const nextCode = redo();
+                  if (nextCode !== null) {
+                    setCode(nextCode);
+                    compileCode(nextCode);
+                  }
                 }}
                 disabled={!canRedo || isStreaming}
                 className="p-1.5 rounded-lg hover:bg-white hover:shadow-sm disabled:opacity-30 disabled:pointer-events-none transition-all text-slate-600"
@@ -291,22 +309,47 @@ function GeneratePageContent() {
               </button>
             </div>
             <div className="h-8 w-[1px] bg-slate-200 mx-2" />
-            
-            {project?.scenes && activeSceneIndex < project.scenes.length - 1 && hasGeneratedOnce && (
-              <button 
-                onClick={handleNextScene}
-                disabled={isStreaming}
-                className="px-6 py-2 bg-slate-900 text-white rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center gap-2 hover:bg-rose-600 transition-all disabled:opacity-20 shadow-lg shadow-slate-900/10 active:scale-95"
-              >
-                <Sparkles size={14} className="fill-current" />
-                Forge Scene {activeSceneIndex + 2}
-              </button>
-            )}
 
-            <RenderControls 
-              code={code} 
-              durationInFrames={parseInt(project?.duration || "30") * 30} 
-              fps={30} 
+            <div className="flex items-center gap-2">
+              {project?.scenes && project.scenes.map((scene: any, i: number) => {
+                // If this is the next scene to be added (i.e. we have added up to i-1)
+                // We'll show the button for any scene index that is greater than or equal to what we've 'active'
+                if (i <= activeSceneIndex && messages.length > 0) return null;
+
+                return (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setActiveSceneIndex(i);
+                      chatSidebarRef.current?.triggerGeneration({
+                        customPrompt: `FORGE SCENE ${i + 1}: Implement Scene ${i + 1}: "${scene.title}". Duration: ${scene.duration}s. Visual Instructions: ${scene.prompt}. IMPORTANT: Integrate this scene seamlessly into the existing timeline. DO NOT remove previous scenes.`,
+                      });
+                    }}
+                    disabled={isStreaming}
+                    className="px-4 py-2 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-rose-600 transition-all disabled:opacity-20 shadow-lg active:scale-95 animate-in fade-in slide-in-from-right-2"
+                  >
+                    Forge Scene {i + 1}
+                  </button>
+                );
+              })}
+
+              {/* Fallback Next Scene button if no specific scene buttons are calculated but we aren't at the end */}
+              {project?.scenes && activeSceneIndex < project.scenes.length - 1 && (!project.scenes[activeSceneIndex + 1] || messages.length === 0) && (
+                <button
+                  onClick={handleNextScene}
+                  disabled={isStreaming}
+                  className="px-6 py-2 bg-slate-900 text-white rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center gap-2 hover:bg-rose-600 transition-all disabled:opacity-20 shadow-lg shadow-slate-900/10 active:scale-95"
+                >
+                  <Sparkles size={14} className="fill-current" />
+                  Forge Scene {activeSceneIndex + 2}
+                </button>
+              )}
+            </div>
+
+            <RenderControls
+              code={code}
+              durationInFrames={parseInt(project?.duration || "30") * 30}
+              fps={30}
               projectId={(id as string) || ""}
               projectName={project?.name || "Untitled Production"}
             />
@@ -318,12 +361,12 @@ function GeneratePageContent() {
           <div className="flex-1 min-h-0 flex flex-col gap-6">
             {/* Preview Section */}
             <section className="bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative group overflow-hidden flex-1 flex flex-col">
-               <AnimationPlayer
+              <AnimationPlayer
                 Component={generationError ? null : Component}
                 durationInFrames={parseInt(project?.duration || "30") * 30}
                 fps={30}
-                onDurationChange={() => {}} 
-                onFpsChange={() => {}}
+                onDurationChange={() => { }}
+                onFpsChange={() => { }}
                 isCompiling={isCompiling}
                 isStreaming={isStreaming}
                 error={generationError?.message || codeError || null}

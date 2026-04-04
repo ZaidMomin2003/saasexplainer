@@ -20,6 +20,7 @@ import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import Link from "next/link";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 interface Scene {
   index: number;
@@ -30,6 +31,14 @@ interface Scene {
 }
 
 export default function DirectorPage() {
+  return (
+    <ProtectedRoute>
+      <DirectorContent />
+    </ProtectedRoute>
+  );
+}
+
+function DirectorContent() {
   const { user } = useAuth();
   const router = useRouter();
   const { id } = useParams();

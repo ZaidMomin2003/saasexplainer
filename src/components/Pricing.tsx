@@ -102,7 +102,7 @@ export const Pricing = () => {
 
                       <div className="flex flex-col gap-2 mb-10 p-6 bg-white/5 rounded-[2rem] border border-white/5 relative overflow-hidden group/price">
                          <div className="flex items-end gap-3 text-white">
-                            <span className="text-7xl font-black tracking-[-0.05em] leading-[0.85] tabular-nums">$16</span>
+                            <span className="text-7xl font-black tracking-[-0.05em] leading-[0.85] tabular-nums">$29</span>
                             <div className="flex flex-col mb-1 leading-none">
                                <span className="text-[11px] font-black opacity-40 uppercase tracking-[0.1em]">per render</span>
                                <span className="text-[10px] font-black text-red-500/80 mt-2 uppercase tracking-tighter line-through opacity-80 tabular-nums">Soon $49.00</span>

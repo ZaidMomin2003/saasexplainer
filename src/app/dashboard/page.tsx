@@ -13,6 +13,7 @@ import { OnboardingTour } from "@/components/OnboardingTour";
 import { NewProjectModal } from "@/components/NewProjectModal";
 import { useConfirm, useLoading } from "@/components/ModalProvider";
 import Loader from "@/components/Loader";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 interface Project {
   id: string;
@@ -23,6 +24,14 @@ interface Project {
 }
 
 export default function Dashboard() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
+  );
+}
+
+function DashboardContent() {
   const { user } = useAuth();
   const confirmAction = useConfirm();
   const setGlobalLoading = useLoading();
@@ -287,6 +296,5 @@ export default function Dashboard() {
         </div>
       </footer>
     </div>
-
   );
 }

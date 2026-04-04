@@ -10,6 +10,8 @@ import { Pricing } from "@/components/Pricing";
 import { FAQ } from "@/components/FAQ";
 import { CTA } from "@/components/CTA";
 import { Footer } from "@/components/Footer";
+import { Showcase } from "@/components/Showcase";
+
 export default function Home() {
   return (
     <div className="bg-white min-h-screen selection:bg-rose-100 selection:text-rose-900 overflow-x-hidden scroll-smooth">
@@ -18,6 +20,7 @@ export default function Home() {
       <HighlightCards />
       <HowItWorks />
       <Features />
+      <Showcase />
       <Pricing />
       <FAQ />
       <CTA />

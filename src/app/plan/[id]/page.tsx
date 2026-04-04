@@ -30,6 +30,7 @@ import { db } from "@/lib/firebase";
 import { doc, onSnapshot, updateDoc, getDoc } from "firebase/firestore";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import Link from "next/link";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -48,6 +49,14 @@ interface ExtractionState {
 }
 
 export default function PlanPage() {
+  return (
+    <ProtectedRoute>
+      <PlanContent />
+    </ProtectedRoute>
+  );
+}
+
+function PlanContent() {
   const { user } = useAuth();
   const firstName = user?.displayName?.split(' ')[0] || "Director";
   const router = useRouter();
@@ -196,13 +205,11 @@ export default function PlanPage() {
     });
   };
 
-
-
   const handleFinalBake = async () => {
     setIsBaking(true);
     
     try {
-      const model = genAI?.getGenerativeModel({ model: "gemini-2.5-pro" });
+      const model = genAI?.getGenerativeModel({ model: "gemini-2.0-pro-exp" });
       
       const bakePrompt = `
         You are a Senior Hollywood Director & Storyboard Artist. 
@@ -240,13 +247,11 @@ export default function PlanPage() {
       const result = await model?.generateContent(bakePrompt);
       const manifestText = result?.response.text() || "{}";
       
-      // Clean JSON if Gemini adds markdown markers
       const cleanJsonStr = manifestText.replace(/```json|```/g, "").trim();
       const manifest = JSON.parse(cleanJsonStr);
       
       setBakedPrompt(JSON.stringify(manifest));
 
-      // 3. FINAL SYNC TO FIREBASE
       await updateDoc(doc(db, "projects", id as string), {
         status: "STORYBOARDING",
         scenes: manifest.scenes,
@@ -257,7 +262,6 @@ export default function PlanPage() {
         updatedAt: Date.now()
       });
 
-      // Clear local storage
       setTimeout(() => {
         localStorage.removeItem(`chat_history_${id}`);
         localStorage.removeItem(`chat_extraction_${id}`);
@@ -302,7 +306,6 @@ export default function PlanPage() {
             </motion.div>
           ) : (
             <motion.div key="brief" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-3xl flex flex-col items-center space-y-6">
-               
                <div className="text-center max-w-2xl px-6">
                   <h2 className="text-4xl font-bold tracking-tight text-slate-900 font-[var(--font-outfit)] leading-tight mb-1">
                      Good Afternoon, <span className="text-slate-400 font-medium">{firstName}.</span><br/>What's on <span className="text-rose-600">your mind?</span>
@@ -310,7 +313,6 @@ export default function PlanPage() {
                </div>
 
                <div className="w-full bg-white rounded-3xl p-4 shadow-xl border border-slate-100 relative group transition-all">
-                  
                   <textarea 
                     value={creativeBrief}
                     onChange={(e) => setCreativeBrief(e.target.value)}
@@ -318,7 +320,6 @@ export default function PlanPage() {
                     className="w-full h-32 bg-transparent text-lg font-medium outline-none placeholder:text-slate-200 resize-none leading-relaxed text-slate-800 p-2"
                   />
 
-                  {/* Asset Previews - BEFORE the action bar */}
                   {(extraction.logo || extraction.screenshots.length > 0) && (
                      <div className="flex flex-wrap gap-4 px-6 pt-2 pb-6">
                         {extraction.logo && (
@@ -344,7 +345,6 @@ export default function PlanPage() {
                      </div>
                   )}
 
-                  {/* Compact Bottom Action Bar */}
                   <div className="flex items-center justify-between px-3 py-2 bg-white border-t border-slate-50 rounded-b-3xl">
                      <div className="flex items-center gap-2">
                         <button onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-[10px] font-bold text-slate-500 transition-all group/btn active:scale-95">
@@ -396,7 +396,6 @@ export default function PlanPage() {
                      </button>
                   ))}
                </div>
-
             </motion.div>
           )}
         </AnimatePresence>

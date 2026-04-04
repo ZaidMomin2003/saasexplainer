@@ -7,7 +7,7 @@ import crypto from "crypto";
 export async function POST(req: Request) {
   const payload = await req.text();
   const signature = req.headers.get("x-dodo-signature");
-  const secret = process.env.DODO_WEBHOOK_SECRET;
+  const secret = process.env.DODOPAYMENTS_WEBHOOK_SECRET;
 
   // 1. Signature Verification
   if (!signature || !secret) {

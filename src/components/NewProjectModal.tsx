@@ -38,7 +38,7 @@ export const NewProjectModal = ({ isOpen, onClose }: NewProjectModalProps) => {
     try {
       // Create a new project in Firestore to get a persistent ID
       const docRef = await addDoc(collection(db, "projects"), {
-        userId: user?.uid || "anonymous",
+        userId: user?.uid,
         name: name.trim(),
         duration: parseInt(duration),
         status: "PLANNING",

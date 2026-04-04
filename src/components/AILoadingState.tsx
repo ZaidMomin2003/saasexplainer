@@ -20,7 +20,7 @@ const TASK_SEQUENCES = [
             "Preparing motion manifest...",
         ],
     },
-    {
+    { 
         status: "Crafting Video elements",
         lines: [
             "Initializing Virtual Camera system...",
