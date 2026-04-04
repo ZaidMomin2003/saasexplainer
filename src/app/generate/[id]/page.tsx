@@ -245,8 +245,8 @@ function GeneratePageContent() {
         errorCorrection={errorCorrection ?? undefined}
         onPendingMessage={setPendingMessage}
         onClearPendingMessage={clearPendingMessage}
-        onResetChat={() => {
-          clearConversation();
+        onResetChat={async () => {
+          await clearConversation();
           setHasAutoStarted(false);
           setCode("");
         }}
@@ -280,8 +280,8 @@ function GeneratePageContent() {
           <div className="flex items-center gap-4">
             <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1">
               <button
-                onClick={() => {
-                  const previousCode = undo();
+                onClick={async () => {
+                  const previousCode = await undo();
                   if (previousCode !== null) {
                     setCode(previousCode);
                     compileCode(previousCode);
@@ -294,8 +294,8 @@ function GeneratePageContent() {
                 <Undo2 size={18} />
               </button>
               <button
-                onClick={() => {
-                  const nextCode = redo();
+                onClick={async () => {
+                  const nextCode = await redo();
                   if (nextCode !== null) {
                     setCode(nextCode);
                     compileCode(nextCode);
