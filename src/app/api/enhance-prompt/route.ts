@@ -5,12 +5,12 @@ export async function POST(req: Request) {
   try {
     const { prompt, audience, name } = await req.json();
 
-    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
        return NextResponse.json({ error: "Gemini API key missing" }, { status: 500 });
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
 
     const systemPrompt = `
       You are an expert AI Director and creative copywriter for saasvideo.online.

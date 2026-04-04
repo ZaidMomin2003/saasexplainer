@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Undo2, Redo2 } from "lucide-react";
+import { Loader2, Undo2, Redo2, Sparkles } from "lucide-react";
 import type { NextPage } from "next";
 import { useParams, useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -39,6 +39,7 @@ function GeneratePageContent() {
   const [errorCorrection, setErrorCorrection] = useState<ErrorCorrectionContext | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [prompt, setPrompt] = useState("");
+  const [activeSceneIndex, setActiveSceneIndex] = useState(0);
 
   const {
     messages,
@@ -141,13 +142,33 @@ function GeneratePageContent() {
   }, [isStreaming, markAsAiGenerated, compileCode]);
 
   useEffect(() => {
-    // If project is loaded and we have a script from the plan phase, we used to pre-fill it.
-    // The user requested to keep it blank on refresh.
-    if (project && project.script && !hasAutoStarted) {
+    // Hollywood Workflow: Auto-start Scene 1 if no code exists
+    if (project?.scenes && project.scenes.length > 0 && !hasGeneratedOnce && !isStreaming && !hasAutoStarted) {
       setHasAutoStarted(true);
-      // setPrompt(bakedPrompt) is removed to keep the input blank
+      const firstScene = project.scenes[0];
+      
+      // We wait a beat for the sidebar to be ready
+      setTimeout(() => {
+        chatSidebarRef.current?.triggerGeneration({
+          customPrompt: `INITIAL FORGE: Implement Scene 1: "${firstScene.title}". Duration: ${firstScene.duration}s. Visual Instructions: ${firstScene.prompt}`,
+          forceInitial: true
+        });
+      }, 1000);
     }
-  }, [project, hasAutoStarted]);
+  }, [project, hasGeneratedOnce, isStreaming, hasAutoStarted]);
+
+  const handleNextScene = useCallback(() => {
+    if (!project?.scenes || activeSceneIndex >= project.scenes.length - 1) return;
+    
+    const nextIndex = activeSceneIndex + 1;
+    const nextScene = project.scenes[nextIndex];
+    
+    setActiveSceneIndex(nextIndex);
+    
+    chatSidebarRef.current?.triggerGeneration({
+      customPrompt: `FORGE NEXT SCENE: Implement Scene ${nextIndex + 1}: "${nextScene.title}". Duration: ${nextScene.duration}s. Visual Instructions: ${nextScene.prompt}. IMPORTANT: Integrate this scene seamlessly into the existing timeline (likely using <Series> or sequential blocks). DO NOT remove previous scenes.`,
+    });
+  }, [project, activeSceneIndex]);
 
   const handleCodeChange = useCallback((newCode: string) => {
     setCode(newCode);
@@ -224,11 +245,17 @@ function GeneratePageContent() {
             <div className="flex flex-col">
               <h1 className="text-lg font-bold tracking-tight text-slate-900 flex items-center gap-2">
                 {project?.name || "Untitled Studio"}
-                <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest border border-rose-200">Director Mode</span>
+                <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest border border-rose-200">Hollywood Studio</span>
               </h1>
-              <p className="text-[11px] text-slate-500 font-medium font-mono uppercase tracking-widest leading-none mt-1">
-                {project?.duration || 30}s • 30fps • 1080p Cinematic
-              </p>
+              <div className="flex items-center gap-2 mt-1">
+                 <p className="text-[11px] text-slate-500 font-medium font-mono uppercase tracking-widest leading-none">
+                   {project?.duration || 30}s • 30fps
+                 </p>
+                 <div className="h-1 w-1 bg-slate-300 rounded-full" />
+                 <p className="text-[11px] text-rose-600 font-black uppercase tracking-widest leading-none">
+                    Scene {activeSceneIndex + 1} of {project?.scenes?.length || "?"}
+                 </p>
+              </div>
             </div>
           </div>
 
@@ -264,6 +291,18 @@ function GeneratePageContent() {
               </button>
             </div>
             <div className="h-8 w-[1px] bg-slate-200 mx-2" />
+            
+            {project?.scenes && activeSceneIndex < project.scenes.length - 1 && hasGeneratedOnce && (
+              <button 
+                onClick={handleNextScene}
+                disabled={isStreaming}
+                className="px-6 py-2 bg-slate-900 text-white rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center gap-2 hover:bg-rose-600 transition-all disabled:opacity-20 shadow-lg shadow-slate-900/10 active:scale-95"
+              >
+                <Sparkles size={14} className="fill-current" />
+                Forge Scene {activeSceneIndex + 2}
+              </button>
+            )}
+
             <RenderControls 
               code={code} 
               durationInFrames={parseInt(project?.duration || "30") * 30} 

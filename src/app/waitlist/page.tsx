@@ -26,8 +26,8 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const faqs = [
   {
-    question: "How do I get the $10 pricing?",
-    answer: "Waitlist members lock in a $10 per video export fee for their first 6 months. After public launch, the price will increase to $49."
+    question: "How do I get the $16 pricing?",
+    answer: "Waitlist members lock in a $16 per video export fee for their first 6 months. After public launch, the price will increase to $49."
   },
   {
     question: "Do I need complex editing skills?",
@@ -35,7 +35,7 @@ const faqs = [
   },
   {
     question: "When is the launch?",
-    answer: "We are onboarding our waitlist in batches starting April 1st. Early sign-ups get priority access."
+    answer: "We are onboarding our waitlist in batches starting April 7th. Early sign-ups get priority access."
   },
   {
     question: "Can I use my own brand assets?",
@@ -102,7 +102,7 @@ export default function WaitlistPage() {
            >
              <div className="flex h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
              <span className="text-[11px] font-black text-gray-500 tracking-[0.1em] uppercase">
-               Launching April 1st • 120+ Founders Signed Up
+               Launching April 7th • 120+ Founders Signed Up
              </span>
              <Sparkles size={12} className="text-gray-400" />
            </motion.div>
@@ -124,7 +124,7 @@ export default function WaitlistPage() {
              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
              className="text-xl md:text-2xl text-gray-500 font-medium tracking-tight mb-12 max-w-2xl leading-relaxed"
            >
-             Get professional explainer videos for <span className="text-gray-950 font-black">$10</span>. <br className="hidden md:block" />
+             Get professional explainer videos for <span className="text-gray-950 font-black">$16</span>. <br className="hidden md:block" />
              Vibe edit with text and speech. No complex software required.
            </motion.p>
 
@@ -179,12 +179,12 @@ export default function WaitlistPage() {
                       <Check size={32} />
                    </div>
                    <h3 className="text-3xl font-black text-emerald-950 mb-3 tracking-tight font-outfit">You're on the list!</h3>
-                   <p className="text-emerald-700 font-medium">Check your inbox for a special welcome gift. Launching April 1st.</p>
+                   <p className="text-emerald-700 font-medium">Check your inbox for a special welcome gift. Launching April 7th.</p>
                 </motion.div>
               )}
               <div className="mt-8 flex items-center justify-center gap-6 text-[11px] font-black text-gray-400 uppercase tracking-widest">
                  <div className="flex items-center gap-2"><ShieldCheck size={14} className="text-emerald-500" /> SECURE LINK</div>
-                 <div className="flex items-center gap-2"><DollarSign size={14} className="text-rose-500" /> $10 GUARANTEED</div>
+                 <div className="flex items-center gap-2"><DollarSign size={14} className="text-rose-500" /> $16 GUARANTEED</div>
                  <div className="flex items-center gap-2"><Globe size={14} className="text-blue-500" /> EARLY ACCESS</div>
               </div>
            </motion.div>

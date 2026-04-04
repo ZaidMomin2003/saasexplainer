@@ -26,7 +26,7 @@ const cards = [
   {
     icon: <Download className="text-white" size={28} />,
     title: "Pay Only to Export",
-    desc: "Generate and preview as much as you want. Commit only when you're 100% satisfied with the final result. Studio-grade quality for a flat $9 fee.",
+    desc: "Generate and preview as much as you want. Commit only when you're 100% satisfied with the final result. Studio-grade quality for a flat $16 fee.",
     span: "md:col-span-3",
     accent: "bg-gray-950 text-white",
     delay: 0.2,

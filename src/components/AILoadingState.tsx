@@ -21,7 +21,7 @@ const TASK_SEQUENCES = [
         ],
     },
     {
-        status: "Crafting Remotion code",
+        status: "Crafting Video elements",
         lines: [
             "Initializing Virtual Camera system...",
             "Crafting high-inertia transitions...",

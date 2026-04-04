@@ -154,7 +154,7 @@ export const Hero = () => {
           transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="text-xl md:text-2xl text-gray-500 font-medium tracking-tight mb-14 max-w-3xl leading-relaxed"
         >
-          Vibe edit your SaaS explainer video with Speech and text—<span className="text-gray-950 font-black tracking-tight">no screen record required</span>. <span className="text-gray-950 font-black tracking-tight">Start for free today</span> and get your first video in minutes. Edit unlimited and export only if you like it for <span className="text-rose-600 font-black underline decoration-rose-200 underline-offset-4">just $9</span>.
+          Vibe edit your SaaS explainer video with Speech and text—<span className="text-gray-950 font-black tracking-tight">no screen record required</span>. <span className="text-gray-950 font-black tracking-tight">Start for free today</span> and get your first video in minutes. Edit unlimited and export only if you like it for <span className="text-rose-600 font-black underline decoration-rose-200 underline-offset-4">just $16</span>.
         </motion.p>
 
         {/* ── Primary Actions ── */}
@@ -197,7 +197,7 @@ export const Hero = () => {
                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.8 }}
                className="flex items-center gap-2 px-5 py-2.5 bg-gray-950 rounded-xl border border-gray-800 shadow-xl shadow-black/20"
              >
-                <span className="text-sm font-bold text-white tracking-tight">$9 Per Export</span>
+                <span className="text-sm font-bold text-white tracking-tight">$16 Per Export</span>
                 <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
                    <Sparkles size={12} className="text-rose-400" />
                 </div>

@@ -16,7 +16,7 @@ const features = [
   },
   {
     icon: <HandCoins size={24} className="text-rose-600" />,
-    title: "$9 Flat Fee",
+    title: "$16 Flat Fee",
     description: "No subscription trap. Pay only when you're 100% happy with the result.",
     size: "col-span-1",
     bg: "bg-rose-50/50",

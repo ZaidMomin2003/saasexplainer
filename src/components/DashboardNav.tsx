@@ -12,88 +12,91 @@ export const DashboardNav = ({ onTriggerTour }: { onTriggerTour?: () => void }) 
   const initial = user?.displayName?.[0] || user?.email?.[0] || "?";
 
   return (
-    <nav className="h-16 flex items-center justify-between px-6 border-b border-gray-100 bg-white">
-      <Link href="/dashboard" className="flex items-center gap-2 group">
-        <div className="bg-rose-600 text-white p-1.5 rounded-lg shadow-sm">
-          <Play size={14} className="fill-current ml-0.5" />
+    <nav className="h-24 sticky top-0 z-50 flex items-center justify-between px-10 bg-slate-50/80 backdrop-blur-xl border-b border-slate-200">
+      <Link href="/dashboard" className="flex items-center gap-3 group">
+        <div className="w-10 h-10 bg-slate-900 text-white flex items-center justify-center rounded-xl shadow-lg shadow-slate-900/10 group-hover:bg-rose-600 transition-colors duration-500">
+          <Play size={18} className="fill-current ml-0.5" />
         </div>
-        <span className="font-[var(--font-outfit)] font-black tracking-tight text-gray-900 text-xl">
-          SaaSVideo
+        <span className="font-heading font-black tracking-tighter text-slate-900 text-2xl lowercase">
+          Studio<span className="text-rose-600">.</span>
         </span>
       </Link>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-6">
         {onTriggerTour && (
           <button 
             onClick={onTriggerTour}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all text-gray-500 hover:text-rose-600 font-bold text-sm"
+            className="hidden md:flex items-center gap-2.5 px-5 py-2.5 rounded-xl hover:bg-white border border-transparent hover:border-slate-200 transition-all text-slate-500 hover:text-slate-900 font-bold text-sm"
           >
-            <HelpCircle size={18} />
-            <span className="hidden md:inline">Tour</span>
+            <HelpCircle size={20} className="text-rose-500" />
+            Tour
           </button>
         )}
         
         <div className="relative">
-        <button 
-          onClick={() => setIsProfileOpen(!isProfileOpen)}
-          className="flex items-center gap-3 p-1.5 pr-3 rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all"
-        >
-          <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-sm uppercase">
-            {initial}
-          </div>
-          <div className="flex flex-col items-start hidden sm:flex text-left">
-            <span className="text-sm font-bold text-gray-900 leading-tight truncate max-w-[120px]">
-              {user?.displayName || "User"}
-            </span>
-            <span className="text-[11px] font-medium text-gray-500 leading-tight">Pay as you go</span>
-          </div>
-        </button>
+          <button 
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+            className="flex items-center gap-4 p-1.5 pr-4 rounded-2xl hover:bg-white border border-transparent hover:border-slate-200 transition-all shadow-sm hover:shadow-md"
+          >
+            <div className="w-11 h-11 rounded-xl bg-slate-900 flex items-center justify-center text-white font-black text-sm uppercase shadow-lg shadow-slate-900/10">
+              {initial}
+            </div>
+            <div className="flex flex-col items-start hidden sm:flex text-left">
+              <span className="text-sm font-bold text-slate-900 leading-tight">
+                {user?.displayName?.split(' ')[0] || "Director"}
+              </span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Studio Pro</span>
+            </div>
+          </button>
 
-        <AnimatePresence>
-          {isProfileOpen && (
-            <>
-              <div 
-                className="fixed inset-0 z-40" 
-                onClick={() => setIsProfileOpen(false)} 
-              />
-              <motion.div 
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                transition={{ duration: 0.15 }}
-                className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50 overflow-hidden"
-              >
-                <div className="px-4 py-3 border-b border-gray-100 mb-2">
-                  <p className="text-sm font-bold text-gray-900 truncate">{user?.email}</p>
-                </div>
-
-                <Link href="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-rose-600 transition-colors">
-                  <User size={16} />
-                  Profile Settings
-                </Link>
-                <Link href="/downloads" className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-rose-600 transition-colors">
-                  <Download size={16} />
-                  My Downloads
-                </Link>
-                <Link href="/billing" className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-rose-600 transition-colors">
-                  <CreditCard size={16} />
-                  Billing & Subscription
-                </Link>
-                
-                <div className="h-px bg-gray-100 my-2"></div>
-                
-                <button 
-                  onClick={signOut}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
+          <AnimatePresence>
+            {isProfileOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setIsProfileOpen(false)} 
+                />
+                <motion.div 
+                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                  transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                  className="absolute right-0 top-full mt-4 w-72 bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-100 p-2 z-50 overflow-hidden"
                 >
-                  <LogOut size={16} />
-                  Log out
-                </button>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-      </div>
+                  <div className="px-5 py-4 border-b border-slate-50 mb-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Authenticated as</p>
+                    <p className="text-sm font-bold text-slate-900 truncate">{user?.email}</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Link href="/profile" className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-rose-600 rounded-xl transition-all">
+                      <User size={18} />
+                      Studio Settings
+                    </Link>
+                    <Link href="/downloads" className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-rose-600 rounded-xl transition-all">
+                      <Download size={18} />
+                      Project Exports
+                    </Link>
+                    <Link href="/billing" className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-rose-600 rounded-xl transition-all">
+                      <CreditCard size={18} />
+                      Billing Portal
+                    </Link>
+                  </div>
+                  
+                  <div className="h-px bg-slate-50 my-2 mx-2"></div>
+                  
+                  <button 
+                    onClick={signOut}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                  >
+                    <LogOut size={18} />
+                    Sign Out
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </nav>
   );

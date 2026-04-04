@@ -58,7 +58,7 @@ export default function BillingPage() {
               </div>
               <h2 className="text-3xl font-black text-gray-900 mb-2 font-[var(--font-outfit)]">Free Tier</h2>
               <p className="text-sm font-medium text-gray-500 max-w-sm">
-                You are currently on the free tier. You only pay a flat $10 export fee per video. No hidden subscriptions.
+                You are currently on the free tier. You only pay a flat $16 export fee per video. No hidden subscriptions.
               </p>
             </div>
             
