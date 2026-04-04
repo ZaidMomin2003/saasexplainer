@@ -1,12 +1,9 @@
 import { NextResponse } from 'next/server';
-import DodoPayments from 'dodopayments';
-
-const client = new DodoPayments({
-  bearerToken: process.env.DODOPAYMENTS_API_KEY!,
-  environment: process.env.NODE_ENV === 'production' ? 'live_mode' : 'test_mode',
-});
+import { getDodoClient } from '@/lib/dodo';
 
 export async function GET(req: Request) {
+  const client = getDodoClient();
+
   const { searchParams } = new URL(req.url);
   const userEmail = searchParams.get('email');
   const userId = searchParams.get('userId');

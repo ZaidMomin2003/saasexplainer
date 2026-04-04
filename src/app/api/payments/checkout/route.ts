@@ -1,21 +1,18 @@
 import { NextResponse } from 'next/server';
-import DodoPayments from 'dodopayments';
 import { executeApi } from "@/helpers/api-response";
 import { z } from "zod";
+import { getDodoClient } from '@/lib/dodo';
 
 const CheckoutRequest = z.object({
   projectId: z.string(),
   userId: z.string().optional(),
 });
 
-const client = new DodoPayments({
-  bearerToken: process.env.DODOPAYMENTS_API_KEY!,
-  environment: process.env.NODE_ENV === 'production' ? 'live_mode' : 'test_mode',
-});
-
 export const POST = executeApi<any, typeof CheckoutRequest>(
   CheckoutRequest,
   async (req, body) => {
+    const client = getDodoClient();
+
     const { projectId, userId } = body;
     
     // Create a checkout session linking this Project ID
