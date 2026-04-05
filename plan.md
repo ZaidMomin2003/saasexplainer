@@ -10,9 +10,12 @@ They called us to Bangalore to start work from office, this 13th. Are there any 
 Hello @Arshad, See Arshad, Employment here at AWS is totally give and take, i am here from past 3 years and i don't have any complains coz i always met my deadlines. But AWS Is so strict as well, they fire within seconds Especially new staff. And regarding salary, please keep asking AWS Seattle, maybe this guys are halting your salaries to test your patience and loyalty, thats 90% of case. They will see if you will apply somewhere else, coz for this post, they want someone loyal and dedicated, they don't want candidated who will abandon AWS for higher package. I assume thats the case with you as well as i saw them testing like this before entering contracts. I dont have any news about postponing, but i will ask. 
 Tomorrow lets do a meeting, you come alone with all updates. We will talk about next project as well. 
 
+
 Hello @Parvathi maam, i am facing some issues here, i am not able to see the progress doing fast. so i beg pardon you, please allow me to solve my mess by evening. I will get back to you with updates. Thanks. Please allow me to solve it out.
 
+
 @Parvathi @everyone, debugging successful, advance with TDL. Complains are raised so expect checking, wrap up by Evening guys. 
+
 
 @Zaid Good you did it, i either way asked them for some relief. Regarding salaries, i confirmed they are waiting for completion of migration. Once thats done, you will receive notes on notice board. I am not sure about time, maybe wait till evening? again i am not sure and saying this out of experience. Keep checking it.
 
@@ -24,3 +27,10 @@ From dizzily-star : Yaa they fired them, they are ofc giving salary but are remo
 
 
 @dizzily-star : Yaa i did asked, didn't got any answer yet. I will forward the message ASAP. Whats your intention? I still wanna go, @everyone, respond your align direction. You guys wanna come or no? and @Parvathi maam, whats your suggestion? 
+
+
+@Parvathi maam, My dad wants to confirm something, a little unofficial. Shall i contact you on call maam? Its a little urgent maam and necessary. Will it be ok? 
+
+@Zaid Ah, no calls today. I am sorry i am with my own family as well. 
+
+@Parvathi maam, Actually my dad is asking about the joining date, he wants to confirm it unofficially. Will it be ok if i ask you on call maam? Its a little urgent maam and necessary. Will it be ok? 

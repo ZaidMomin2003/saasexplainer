@@ -175,18 +175,6 @@ function GeneratePageContent() {
     }, [project, hasGeneratedOnce, isStreaming, hasAutoStarted]);
   */
 
-  const handleNextScene = useCallback(() => {
-    if (!project?.scenes || activeSceneIndex >= project.scenes.length - 1) return;
-
-    const nextIndex = activeSceneIndex + 1;
-    const nextScene = project.scenes[nextIndex];
-
-    setActiveSceneIndex(nextIndex);
-
-    chatSidebarRef.current?.triggerGeneration({
-      customPrompt: `FORGE NEXT SCENE: Implement Scene ${nextIndex + 1}: "${nextScene.title}". Duration: ${nextScene.duration}s. Visual Instructions: ${nextScene.prompt}. IMPORTANT: Integrate this scene seamlessly into the existing timeline (likely using <Series> or sequential blocks). DO NOT remove previous scenes.`,
-    });
-  }, [project, activeSceneIndex]);
 
   const handleCodeChange = useCallback((newCode: string) => {
     setCode(newCode);
@@ -312,9 +300,9 @@ function GeneratePageContent() {
 
             <div className="flex items-center gap-2">
               {project?.scenes && project.scenes.map((scene: any, i: number) => {
-                // If this is the next scene to be added (i.e. we have added up to i-1)
-                // We'll show the button for any scene index that is greater than or equal to what we've 'active'
-                if (i <= activeSceneIndex && messages.length > 0) return null;
+                // Hollywood Logic: Only show EXACTLY the next scene in the queue
+                const nextToForge = messages.length === 0 ? 0 : activeSceneIndex + 1;
+                if (i !== nextToForge) return null;
 
                 return (
                   <button
@@ -326,24 +314,13 @@ function GeneratePageContent() {
                       });
                     }}
                     disabled={isStreaming}
-                    className="px-4 py-2 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-rose-600 transition-all disabled:opacity-20 shadow-lg active:scale-95 animate-in fade-in slide-in-from-right-2"
+                    className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center gap-2 hover:bg-rose-600 transition-all disabled:opacity-20 shadow-lg shadow-slate-900/10 active:scale-95 animate-in fade-in slide-in-from-right-2"
                   >
+                    <Sparkles size={14} className="fill-current" />
                     Forge Scene {i + 1}
                   </button>
                 );
               })}
-
-              {/* Fallback Next Scene button if no specific scene buttons are calculated but we aren't at the end */}
-              {project?.scenes && activeSceneIndex < project.scenes.length - 1 && (!project.scenes[activeSceneIndex + 1] || messages.length === 0) && (
-                <button
-                  onClick={handleNextScene}
-                  disabled={isStreaming}
-                  className="px-6 py-2 bg-slate-900 text-white rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center gap-2 hover:bg-rose-600 transition-all disabled:opacity-20 shadow-lg shadow-slate-900/10 active:scale-95"
-                >
-                  <Sparkles size={14} className="fill-current" />
-                  Forge Scene {activeSceneIndex + 2}
-                </button>
-              )}
             </div>
 
             <RenderControls
