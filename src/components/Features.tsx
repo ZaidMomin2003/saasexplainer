@@ -8,25 +8,25 @@ const features = [
   {
     icon: <Clock size={24} className="text-rose-600" />,
     title: "10-Minute Generation",
-    description: "Our distributed cloud engine renders your SaaS explainer in minutes, not days. Parallel processing at its finest.",
+    description: "Our proprietary engine renders your SaaS explainer in minutes, not days. Parallel processing at its finest.",
     size: "col-span-1 md:col-span-2",
     bg: "bg-white",
     delay: 0,
-    tag: "Distrubuted Cloud"
+    tag: "Render Engine"
   },
   {
     icon: <HandCoins size={24} className="text-rose-600" />,
-    title: "$29 Flat Fee",
-    description: "No subscription trap. Pay only when you're 100% happy with the result.",
+    title: "Free to Start",
+    description: "No subscription trap. No credit card required. Lock in your founding member deal.",
     size: "col-span-1",
     bg: "bg-rose-50/50",
     delay: 0.1,
-    tag: "Risk Free"
+    tag: "Early Access"
   },
   {
     icon: <Sparkles size={24} className="text-rose-600" />,
-    title: "AI Scene Crafting",
-    description: "Director AI analyzes your website assets to create custom mockups, transitions, and storyboards.",
+    title: "AI Engine Overhaul",
+    description: "Our engine analyzes your website link and logo to create custom animations, SFX, and storyboards automatically.",
     size: "col-span-1",
     bg: "bg-white",
     delay: 0.2,

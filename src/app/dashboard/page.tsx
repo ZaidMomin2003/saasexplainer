@@ -231,19 +231,61 @@ function DashboardContent() {
                       className="group relative aspect-square bg-white rounded-3xl p-6 shadow-sm hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500 border border-slate-200 flex flex-col"
                     >
                       {/* Interactive Visual Base */}
-                      <div className="flex-1 rounded-2xl bg-slate-100 relative overflow-hidden transition-all duration-500">
+                      <div className="flex-1 rounded-2xl relative overflow-hidden transition-all duration-500">
+                        {/* Dynamic Deterministic Mesh Gradient */}
+                        {(() => {
+                          const id = project.id;
+                          let hash = 0;
+                          for (let i = 0; i < id.length; i++) {
+                            hash = id.charCodeAt(i) + ((hash << 5) - hash);
+                          }
+                          
+                          const palette = [
+                            '#d3fc72', // Lime
+                            '#553199', // Purple
+                            '#00f5d4', // Teal
+                            '#f15bb5', // Pink
+                            '#fee440', // Yellow
+                          ];
+                          
+                          const c1 = palette[Math.abs(hash % palette.length)];
+                          const c2 = palette[Math.abs((hash * 2) % palette.length)];
+                          const c3 = palette[Math.abs((hash * 3) % palette.length)];
+                          
+                          return (
+                            <div className="absolute inset-0 overflow-hidden transition-transform duration-700 group-hover:scale-105">
+                                <div 
+                                    className="absolute inset-[-50%] blur-[60px] opacity-80"
+                                    style={{
+                                        background: `
+                                        radial-gradient(circle at 20% 20%, ${c1} 0%, transparent 40%),
+                                        radial-gradient(circle at 80% 10%, ${c2} 0%, transparent 40%),
+                                        radial-gradient(circle at 50% 80%, ${c3} 0%, transparent 50%),
+                                        radial-gradient(circle at 100% 100%, ${c1} 0%, transparent 40%),
+                                        #111
+                                        `
+                                    }}
+                                />
+                                {/* Noise Overlay */}
+                                <div className="absolute inset-0 opacity-[0.25] mix-blend-overlay pointer-events-none" 
+                                     style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} 
+                                />
+                            </div>
+                          );
+                        })()}
+                        
                         {/* Static Subtle Pattern */}
-                        <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_20%_20%,_#e11d48_0%,_transparent_50%)]" />
+                        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_50%_50%,_white_0%,_transparent_1px)] bg-[length:20px_20px]" />
                         
                         <div className="absolute inset-0 flex items-center justify-center">
-                           <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-500">
+                           <div className="w-12 h-12 bg-white/80 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-500">
                               <Video size={20} className="text-slate-400 group-hover:text-rose-600 transition-colors" />
                            </div>
                         </div>
                         
                         {/* Status Float */}
                         <div className="absolute top-4 left-4 z-20">
-                          <span className={`px-4 py-1.5 bg-white border border-slate-100 rounded-lg text-[10px] font-bold uppercase tracking-widest shadow-sm ${
+                          <span className={`px-4 py-1.5 bg-white/90 backdrop-blur-md border border-white/60 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm ${
                             isReady ? 'text-emerald-600' : 'text-rose-600'
                           }`}>
                              {project.status || "Draft"}

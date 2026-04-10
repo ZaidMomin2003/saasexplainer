@@ -31,6 +31,7 @@ export const metadata: Metadata = {
 };
 
 import Script from "next/script";
+import { Toaster } from "sonner";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 export default function RootLayout({
@@ -57,6 +58,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={`${inter.variable} ${outfit.variable} ${cursive.variable} font-inter bg-white text-gray-900 antialiased selection:bg-indigo-100 selection:text-indigo-950`}>
+        <Toaster richColors closeButton position="top-center" />
         <GoogleAnalytics />
         <AuthProvider>
           <ModalProvider>

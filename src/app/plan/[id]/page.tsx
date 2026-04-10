@@ -2,51 +2,55 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import { 
-  Send, 
-  Sparkles, 
-  User, 
-  Bot, 
+  Plus, 
   Trash2, 
-  Zap, 
-  Loader2, 
   ArrowRight,
-  RefreshCw,
-  Info,
-  Image as ImageIcon,
-  Camera,
-  Layers,
-  X,
+  Loader2,
+  Sparkles,
   ChevronLeft,
-  Wand2,
-  Video,
-  Plus,
-  Paperclip,
-  ArrowUp
+  Upload
 } from "lucide-react";
+import { Logo } from "@/components/logo";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { doc, onSnapshot, updateDoc, getDoc } from "firebase/firestore";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { updateDoc, doc, onSnapshot } from "firebase/firestore";
 import Link from "next/link";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import imageCompression from 'browser-image-compression';
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-  images?: string[];
-}
-
-interface ExtractionState {
-  name?: string;
-  website?: string;
-  style?: string;
-  duration?: number;
-  notes?: string;
-  logo?: string;
-  screenshots: string[];
-}
+const THEMES = [
+  { 
+    id: "tech_minimal", 
+    name: "Tech Minimal", 
+    desc: "Dark mode, neon highlights, clean geometry",
+    gradient: "from-slate-900 to-slate-800",
+    icon: "💠"
+  },
+  { 
+    id: "premium_luxury", 
+    name: "Premium Luxury", 
+    desc: "Gold accents, smooth ease, rich glassmorphism",
+    gradient: "from-amber-900 via-slate-900 to-slate-900",
+    icon: "💎"
+  },
+  { 
+    id: "fast_paced", 
+    name: "High Entropy", 
+    desc: "Rapid cuts, high-tempo, vibrant 2D/3D shapes",
+    gradient: "from-rose-600 to-indigo-700",
+    icon: "🔥"
+  },
+  { 
+    id: "corporate_clean", 
+    name: "Corporate Clean", 
+    desc: "Light mode, trustworthy blues, soft shadows",
+    gradient: "from-blue-500 to-blue-700",
+    icon: "💼"
+  },
+];
 
 export default function PlanPage() {
   return (
@@ -58,252 +62,155 @@ export default function PlanPage() {
 
 function PlanContent() {
   const { user } = useAuth();
-  const firstName = user?.displayName?.split(' ')[0] || "Director";
   const router = useRouter();
   const { id } = useParams();
   
   const [project, setProject] = useState<any>(null);
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [isBaking, setIsBaking] = useState(false);
-  const [isEnhancing, setIsEnhancing] = useState(false);
-  const [bakedPrompt, setBakedPrompt] = useState("");
   
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [creativeBrief, setCreativeBrief] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const [extraction, setExtraction] = useState<ExtractionState>({ screenshots: [] });
-  
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const logoInputRef = useRef<HTMLInputElement>(null);
-  const screenshotInputRef = useRef<HTMLInputElement>(null);
+  const [website, setWebsite] = useState("");
+  const [theme, setTheme] = useState("");
+  const [inspiration, setInspiration] = useState("");
+  const [screenshots, setScreenshots] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
-  // Initialize Gemini
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-  const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 1. Unified Project Sync & Migration
+  // 1. Fetch Project Data
   useEffect(() => {
     if (!id) return;
-    
     const docRef = doc(db, "projects", id as string);
-    const unsubscribe = onSnapshot(docRef, async (docSnap) => {
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setProject(data);
-
-        // -- Sync Creative Brief --
-        if (data.creativeBrief) {
-          setCreativeBrief(data.creativeBrief);
-        } else {
-          const localBrief = localStorage.getItem(`creative_brief_${id}`);
-          if (localBrief) {
-             setCreativeBrief(localBrief);
-             await updateDoc(docRef, { creativeBrief: localBrief });
-          }
-        }
-
-        // -- Sync Extraction State --
-        if (data.extraction) {
-          setExtraction(data.extraction);
-        } else {
-          const localExtractKey = `chat_extraction_${id}`;
-          const savedExtraction = localStorage.getItem(localExtractKey);
-          if (savedExtraction) {
-            const parsed = JSON.parse(savedExtraction);
-            setExtraction(parsed);
-            await updateDoc(docRef, { extraction: parsed });
-          } else {
-            setExtraction({
-              name: data.name,
-              duration: data.duration,
-              screenshots: []
-            });
-          }
-        }
-
-        // -- Sync Messages --
-        if (data.plan_chat) {
-          setMessages(data.plan_chat);
-        } else {
-          const localMessages = localStorage.getItem(`chat_history_${id}`);
-          if (localMessages) {
-            const parsed = JSON.parse(localMessages);
-            setMessages(parsed);
-            await updateDoc(docRef, { plan_chat: parsed });
-          } else {
-            setMessages([
-              { 
-                role: 'assistant', 
-                content: `Hello! I'm your Creative Director. I've got your project <b>"${data.name}"</b> locked in for <b>${data.duration} seconds</b>. To start building our cinematic vision, what is your <b>website URL</b> and what is the <b>primary goal</b> of this video?` 
-              }
-            ]);
-          }
-        }
-        
+        if (data.website) setWebsite(data.website);
+        if (data.theme) setTheme(data.theme);
+        if (data.inspiration) setInspiration(data.inspiration);
+        if (data.assets?.screenshots) setScreenshots(data.assets.screenshots);
         setLoading(false);
       }
     });
-
     return () => unsubscribe();
   }, [id]);
 
-  // Sync messages to Firestore
-  const updateMessages = async (updater: (prev: Message[]) => Message[]) => {
-    setMessages(prev => {
-      const next = updater(prev);
-      if (id) {
-        updateDoc(doc(db, "projects", id as string), { plan_chat: next }).catch(console.error);
-      }
-      return next;
-    });
-  };
+  // Manual Step Transition logic handled by nextStep() and prevStep()
 
-  // Sync state changes to Firestore
-  const updateBrief = async (val: string) => {
-    setCreativeBrief(val);
-    if (id) {
-       await updateDoc(doc(db, "projects", id as string), { creativeBrief: val }).catch(console.error);
-    }
-  };
-
-  const updateExtraction = async (updater: (prev: ExtractionState) => ExtractionState) => {
-    setExtraction(prev => {
-      const next = updater(prev);
-      if (id) {
-        updateDoc(doc(db, "projects", id as string), { extraction: next }).catch(console.error);
-      }
-      return next;
-    });
-  };
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
-
-  const handleEnhancePrompt = async () => {
-    if (!creativeBrief || creativeBrief.length < 5 || isEnhancing) return;
-    setIsEnhancing(true);
-    try {
-      const res = await fetch("/api/enhance-prompt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-           prompt: creativeBrief, 
-           name: extraction.name || "Untitled Production"
-        })
-      });
-      const data = await res.json();
-      if (data.enhancedPrompt) {
-        updateBrief(data.enhancedPrompt);
-      }
-    } catch (err) {
-      console.error("Enhance failed:", err);
-    } finally {
-      setIsEnhancing(false);
-    }
-  };
-
-  const handleRemoveAsset = (type: 'logo' | 'screenshot', index?: number) => {
-    updateExtraction(prev => {
-      if (type === 'logo') {
-        return { ...prev, logo: undefined };
-      } else if (index !== undefined) {
-        return {
-          ...prev,
-          screenshots: prev.screenshots.filter((_, i) => i !== index)
-        };
-      }
-      return prev;
-    });
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "logo" | "screenshot") => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
+    
+    setIsUploading(true);
+    const options = {
+      maxSizeMB: 0.4,
+      maxWidthOrHeight: 1280,
+      useWebWorker: true
+    };
 
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        if (type === "logo") {
-          updateExtraction(prev => ({ ...prev, logo: base64 }));
-          updateMessages(prev => [...prev, { role: 'user', content: "I've uploaded the master logo.", images: [base64] }]);
-        } else {
-          updateExtraction(prev => ({ ...prev, screenshots: [...prev.screenshots, base64] }));
-          updateMessages(prev => [...prev, { role: 'user', content: "Here is a screenshot of our dashboard.", images: [base64] }]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const newScreenshots = [...screenshots];
+      for (const file of Array.from(files)) {
+        const compressedFile = await imageCompression(file, options);
+        const reader = new FileReader();
+        await new Promise((resolve) => {
+          reader.onloadend = () => {
+            newScreenshots.push(reader.result as string);
+            resolve(true);
+          };
+          reader.readAsDataURL(compressedFile);
+        });
+      }
+      setScreenshots(newScreenshots);
+      await updateDoc(doc(db, "projects", id as string), {
+        "assets.screenshots": newScreenshots,
+        updatedAt: Date.now()
+      });
+      toast.success("Assets synchronized.");
+    } catch (err) {
+      console.error("Compression failed:", err);
+      toast.error("Asset upload failed.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
-  const handleFinalBake = async () => {
+  const nextStep = () => {
+    if (step === 1 && !website) return toast.error("Please enter your website URL");
+    if (step === 2 && !theme) return toast.error("Please select a visual theme");
+    if (step === 3 && !inspiration) return toast.error("Please provide an inspiration link");
+    setStep(s => Math.min(4, s + 1));
+  };
+
+  const prevStep = () => setStep(s => Math.max(1, s - 1));
+
+  const goToStep = (target: number) => {
+    if (target === step) return;
+    
+    // Moving Backward: Always allowed
+    if (target < step) {
+      setStep(target);
+      return;
+    }
+
+    // Moving Forward: Check dependencies
+    if (target >= 2 && !website) return toast.error("Website URL required");
+    if (target >= 3 && !theme) return toast.error("Theme selection required");
+    if (target >= 4 && !inspiration) return toast.error("Inspiration required");
+    
+    setStep(target);
+  };
+
+  const handleCreateVideo = async () => {
+    if (!website || !theme || isBaking || !id) return;
     setIsBaking(true);
     
+    const toastId = toast.loading("Analyzing Website & Style Reference...");
+
     try {
-      const model = genAI?.getGenerativeModel({ model: "gemini-2.0-pro-exp" });
-      
-      const bakePrompt = `
-        You are a Senior Hollywood Director & Storyboard Artist. 
-        Analyze the following Creative Brief and produce a highly detailed, scene-by-scene script.
-        
-        PROJECT DATA:
-        Name: ${extraction.name}
-        Duration: ${extraction.duration}s
-        Style: ${extraction.style || "Premium Aesthetic"}
-        Creative Brief: ${creativeBrief}
-        
-        ASSETS:
-        Logo: ${extraction.logo ? "Available" : "None"}
-        Screenshots: ${extraction.screenshots.length} Provided
-
-        OUTPUT REQUIREMENT:
-        Return ONLY valid JSON. The output must be an object with a "scenes" property containing an array of objects.
-        Each scene object MUST have:
-        - index: integer (starting from 0)
-        - title: string (short catchy title for the scene)
-        - prompt: string (EXTREMELY detailed visual instructions for the AI motion engine. Describe camera moves, colors, exact UI elements to show, and motion physics).
-        - duration: number (seconds for this scene, total must equal ${extraction.duration})
-
-        Example Schema:
-        {
-          "scenes": [
-            { "index": 0, "title": "The Hook", "prompt": "...", "duration": 5 },
-            ...
-          ]
-        }
-
-        CRITICAL: Use high-end cinematic terminology. Be specific about 3D depth, glassmorphism, and easing.
-      `;
-
-      const result = await model?.generateContent(bakePrompt);
-      const manifestText = result?.response.text() || "{}";
-      
-      const cleanJsonStr = manifestText.replace(/```json|```/g, "").trim();
-      const manifest = JSON.parse(cleanJsonStr);
-      
-      setBakedPrompt(JSON.stringify(manifest));
-
       await updateDoc(doc(db, "projects", id as string), {
-        status: "STORYBOARDING",
-        scenes: manifest.scenes,
-        creativeBrief: creativeBrief,
-        "style": extraction.style || "Apple Luxury",
-        "assets.logo": extraction.logo || null,
-        "assets.screenshots": extraction.screenshots || [],
+        website,
+        theme,
+        inspiration,
+        status: "DRAFT_ANALYZING",
         updatedAt: Date.now()
       });
 
-      setTimeout(() => {
-        localStorage.removeItem(`chat_history_${id}`);
-        localStorage.removeItem(`chat_extraction_${id}`);
-        router.push(`/director/${id}`);
-      }, 1500);
+      const res = await fetch("/api/director", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: id,
+          website,
+          theme,
+          inspiration,
+          screenshots,
+          duration: project?.duration || 30
+        })
+      });
 
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Director analysis failed");
+      }
+
+      const { blueprint } = await res.json();
+
+      await updateDoc(doc(db, "projects", id as string), {
+        scenes: blueprint.scenes ?? [],
+        branding: blueprint.branding ?? { primaryColor: "#E11D48", tone: "Minimal" },
+        style_blueprint: blueprint.style_blueprint ?? { pacing: "dynamic" },
+        status: "DRAFT_READY",
+        updatedAt: Date.now()
+      });
+
+      toast.success("Architect's Blueprint Ready!", { id: toastId });
+      router.push(`/director/${id}`);
+      
     } catch (err) {
-      console.error("Bake failed:", err);
-      alert("Final sync failed. Please check your connection.");
+      console.error("Discovery failed:", err);
+      toast.error("Failed to sync with the Director engine.", { id: toastId });
     } finally {
       setIsBaking(false);
     }
@@ -311,125 +218,271 @@ function PlanContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center space-y-4">
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center space-y-4">
         <Loader2 className="animate-spin text-rose-600" size={32} />
-        <p className="text-sm font-black text-slate-300 uppercase tracking-[0.3em]">Preparing Studio</p>
+        <p className="text-sm font-black text-slate-300 uppercase tracking-[0.3em]">Opening Manifest</p>
       </div>
     );
   }
 
   return (
-    <div className="h-screen bg-slate-50 text-slate-900 font-inter selection:bg-rose-100 overflow-hidden flex flex-col">
-      <nav className="h-14 px-6 flex items-center justify-between relative z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
-        <Link href="/dashboard" className="p-2 text-slate-300 hover:text-slate-900 bg-white border border-slate-100 rounded-xl transition-all shadow-sm">
-          <ChevronLeft size={18} />
-        </Link>
-        <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 border border-slate-100 rounded-full">
-           <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-           <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">V2.4 • Online</span>
+    <div className="h-screen bg-white text-slate-900 font-inter selection:bg-rose-100 overflow-hidden flex flex-col">
+      {/* Background Ambience */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.04]">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-rose-600 blur-[180px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600 blur-[180px] rounded-full" />
+      </div>
+
+      {/* Navigation Header */}
+      <nav className="h-16 px-8 flex items-center justify-between relative z-50 shrink-0 border-b border-slate-50">
+        <div className="flex items-center gap-6">
+          <Link href="/dashboard" className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all">
+            <ChevronLeft size={18} />
+          </Link>
+          <Logo />
+        </div>
+
+        <div className="flex flex-col items-center">
+           <div className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-300 mb-1.5 opacity-60">Production Manifest</div>
+           <div className="flex gap-2">
+              {[1, 2, 3, 4].map((i) => (
+                <button 
+                  key={i} 
+                  onClick={() => goToStep(i)}
+                  className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${step >= i ? 'w-10 bg-slate-900 shadow-[0_0_10px_rgba(0,0,0,0.1)]' : 'w-4 bg-slate-100'}`} 
+                />
+              ))}
+           </div>
+        </div>
+        <div className="flex items-center gap-4">
+           <div className="hidden md:flex flex-col items-end mr-2">
+              <span className="text-[10px] font-bold text-slate-900">Project: {project?.name || "Untitled"}</span>
+              <span className="text-[9px] text-slate-400 font-medium">Baking in progress</span>
+           </div>
+           <div className="w-9 h-9 bg-slate-50 rounded-lg flex items-center justify-center text-rose-500">
+              <Sparkles size={16} fill="currentColor" />
+           </div>
         </div>
       </nav>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10 pb-12 overflow-hidden">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-8 flex flex-col justify-center relative z-10 py-6 overflow-hidden">
         <AnimatePresence mode="wait">
-          {isBaking ? (
-            <motion.div key="baking" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center space-y-4">
-               <div className="w-12 h-12 border-4 border-slate-100 border-t-rose-600 rounded-full animate-spin" />
-               <h3 className="text-xl font-bold text-slate-900 tracking-tight font-[var(--font-outfit)] leading-none">Architecting Storyboard...</h3>
-            </motion.div>
-          ) : (
-            <motion.div key="brief" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-3xl flex flex-col items-center space-y-6">
-               <div className="text-center max-w-2xl px-6">
-                  <h2 className="text-4xl font-bold tracking-tight text-slate-900 font-[var(--font-outfit)] leading-tight mb-1">
-                     Good Afternoon, <span className="text-slate-400 font-medium">{firstName}.</span><br/>What's on <span className="text-rose-600">your mind?</span>
-                  </h2>
-               </div>
+          {step === 1 && (
+            <motion.section
+              key="step1"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 1.05, y: -20 }}
+              className="space-y-12"
+            >
+              <div className="space-y-3">
+                <span className="text-rose-600 font-black uppercase tracking-[0.4em] text-[10px]">Foundation</span>
+                <h1 className="text-6xl font-black text-slate-900 tracking-tighter font-heading leading-[0.9]">
+                  What are we <br/><span className="text-rose-600">building?</span>
+                </h1>
+                <p className="text-slate-400 text-lg font-medium max-w-lg leading-relaxed">
+                  Enter your product's home base.
+                </p>
+              </div>
 
-               <div className="w-full bg-white rounded-3xl p-4 shadow-xl border border-slate-100 relative group transition-all">
-                  <textarea 
-                    value={creativeBrief}
-                    onChange={(e) => updateBrief(e.target.value)}
-                    placeholder="Ask AI to architect a video or make a request..."
-                    className="w-full h-32 bg-transparent text-lg font-medium outline-none placeholder:text-slate-200 resize-none leading-relaxed text-slate-800 p-2"
-                  />
+              <div className="relative group max-w-3xl">
+                <div className="absolute -inset-1 bg-gradient-to-r from-rose-600 to-rose-400 rounded-[2.5rem] blur opacity-20 group-focus-within:opacity-40 transition" />
+                <input 
+                  type="text"
+                  placeholder="https://your-product.com"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  className="relative w-full px-12 py-10 bg-white border-2 border-slate-100 rounded-[2.5rem] text-4xl font-black italic text-rose-600 outline-none shadow-2xl focus:border-rose-600 transition-all placeholder:text-slate-100"
+                  autoFocus
+                />
+                <button 
+                  onClick={nextStep}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 p-6 bg-rose-600 text-white rounded-3xl hover:bg-rose-700 transition-all shadow-xl active:scale-95"
+                >
+                  <ArrowRight size={28} />
+                </button>
+              </div>
+            </motion.section>
+          )}
 
-                  {(extraction.logo || extraction.screenshots.length > 0) && (
-                     <div className="flex flex-wrap gap-4 px-6 pt-2 pb-6">
-                        {extraction.logo && (
-                           <div className="relative group/asset">
-                              <div className="w-14 h-14 rounded-2xl border border-purple-100 overflow-hidden shadow-sm p-2 bg-white ring-2 ring-purple-600/5 group-hover/asset:ring-rose-500/50 transition-all">
-                                 <img src={extraction.logo} className="w-full h-full object-contain" />
-                              </div>
-                              <button onClick={() => handleRemoveAsset('logo')} className="absolute -top-2 -right-2 w-5 h-5 bg-black text-white rounded-full flex items-center justify-center opacity-0 group-hover/asset:opacity-100 transition-opacity hover:bg-rose-600">
-                                 <X size={10} />
-                              </button>
-                           </div>
-                        )}
-                        {extraction.screenshots.map((shot, idx) => (
-                           <div key={idx} className="relative group/asset">
-                              <div className="w-14 h-14 rounded-2xl border border-slate-100 overflow-hidden shadow-sm ring-2 ring-transparent group-hover/asset:ring-rose-500 transition-all">
-                                 <img src={shot} className="w-full h-full object-cover" />
-                              </div>
-                              <button onClick={() => handleRemoveAsset('screenshot', idx)} className="absolute -top-2 -right-2 w-5 h-5 bg-black text-white rounded-full flex items-center justify-center opacity-0 group-hover/asset:opacity-100 transition-opacity hover:bg-rose-600">
-                                 <X size={10} />
-                              </button>
-                           </div>
-                        ))}
-                     </div>
-                  )}
+          {step === 2 && (
+            <motion.section
+              key="step2"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              className="space-y-12"
+            >
+              <div className="space-y-3">
+                <span className="text-rose-600 font-black uppercase tracking-[0.4em] text-[10px]">Aesthetic</span>
+                <h1 className="text-6xl font-black text-slate-900 tracking-tighter font-heading leading-[0.9]">
+                  Set the <br/><span className="text-rose-600">vibe.</span>
+                </h1>
+              </div>
 
-                  <div className="flex items-center justify-between px-3 py-2 bg-white border-t border-slate-50 rounded-b-3xl">
-                     <div className="flex items-center gap-2">
-                        <button onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-[10px] font-bold text-slate-500 transition-all group/btn active:scale-95">
-                           <Paperclip size={12} className="text-slate-400 group-hover/btn:text-rose-600" /> 
-                           Logo
-                        </button>
-                        <button onClick={() => screenshotInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-[10px] font-bold text-slate-500 transition-all group/btn active:scale-95">
-                           <ImageIcon size={12} className="text-slate-400 group-hover/btn:text-rose-600" /> 
-                           Screens
-                        </button>
-                        <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, "logo")} />
-                        <input type="file" ref={screenshotInputRef} className="hidden" accept="image/*" multiple onChange={(e) => handleFileUpload(e, "screenshot")} />
-                        
-                        <div className="w-[1px] h-4 bg-slate-100 mx-1" />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-6">
+                {THEMES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setTheme(t.id)}
+                    className={`group text-left p-6 rounded-[2rem] border-2 transition-all relative overflow-hidden ${
+                      theme === t.id 
+                        ? 'border-slate-900 bg-slate-50 shadow-lg' 
+                        : 'border-slate-50 bg-white hover:border-slate-200'
+                    }`}
+                  >
+                    <div className="relative z-10 flex flex-col h-full gap-3">
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${t.gradient} flex items-center justify-center text-xl shadow-lg`}>
+                        {t.icon}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black text-slate-900 tracking-tight leading-tight">{t.name}</h3>
+                        <p className="text-slate-400 font-bold text-[10px] mt-1 leading-tight">{t.desc}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
 
-                        <button 
-                          onClick={handleEnhancePrompt}
-                          disabled={creativeBrief.length < 5 || isEnhancing}
-                          className="flex items-center gap-1.5 px-3 py-2 bg-rose-50 text-rose-600 border border-rose-100 rounded-lg text-[10px] font-bold hover:bg-rose-600 hover:text-white transition-all disabled:opacity-30 group/magic active:scale-95"
-                        >
-                           {isEnhancing ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                           Polish Vision
-                        </button>
-                     </div>
+              <div className="flex gap-4">
+                <button 
+                  onClick={prevStep}
+                  className="px-8 py-4 bg-slate-50 text-slate-400 rounded-2xl font-black text-sm hover:text-slate-900 transition-colors"
+                >
+                  Back
+                </button>
+                <button 
+                  onClick={nextStep}
+                  className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black text-base hover:bg-rose-600 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3"
+                >
+                  Next Step <ArrowRight size={18} />
+                </button>
+              </div>
+            </motion.section>
+          )}
 
-                     <button 
-                        onClick={handleFinalBake}
-                        disabled={creativeBrief.length < 20 || isBaking}
-                        className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center transition-all hover:bg-rose-600 active:scale-90 disabled:opacity-10 shadow-lg group/submit"
-                     >
-                        <ArrowUp size={20} className="group-hover:-translate-y-1 transition-transform" />
-                     </button>
-                  </div>
-               </div>
+          {step === 3 && (
+            <motion.section
+              key="step3"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              className="space-y-12"
+            >
+              <div className="space-y-3">
+                <span className="text-rose-600 font-black uppercase tracking-[0.4em] text-[10px]">Influence</span>
+                <h1 className="text-6xl font-black text-slate-900 tracking-tighter font-heading leading-[0.9]">
+                  Visual <br/><span className="text-rose-600">idols.</span>
+                </h1>
+                <p className="text-slate-400 text-lg font-medium max-w-lg">
+                  Paste inspiration link.
+                </p>
+              </div>
 
-               <div className="flex items-center justify-center gap-2 w-full max-w-4xl pt-2">
-                  {[
-                     { label: "Apple Style", prompt: "A sleek, Apple-style introduction with smooth zooming transitions..." },
-                     { label: "Cyberpunk", prompt: "Neon-noir aesthetic with high-contrast UI pop-ups and glitch effects..." },
-                     { label: "Product Reveal", prompt: "Epic lighting, slow-motion rotations, and dramatic shadows..." }
-                  ].map((card, i) => (
-                     <button 
-                        key={i} 
-                        onClick={() => updateBrief(card.prompt)}
-                        className="flex-1 px-4 py-3 bg-white border border-slate-100 shadow-sm rounded-2xl text-[10px] font-bold text-slate-400 hover:border-rose-200 hover:text-rose-600 transition-all text-center flex items-center justify-center gap-2 group"
-                     >
-                        {card.label}
-                        <ArrowRight size={10} className="opacity-0 group-hover:opacity-100 transition-all" />
-                     </button>
+              <div className="relative group max-w-3xl">
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-rose-400 rounded-[2rem] blur opacity-10 group-focus-within:opacity-20 transition" />
+                <input 
+                  type="text"
+                  placeholder="https://youtube.com/..."
+                  value={inspiration}
+                  onChange={(e) => setInspiration(e.target.value)}
+                  className="relative w-full px-8 py-8 bg-white border-2 border-slate-100 rounded-[2rem] text-2xl font-black italic text-slate-900 outline-none shadow-xl focus:border-slate-900 transition-all placeholder:text-slate-100"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <button 
+                  onClick={prevStep}
+                  className="px-8 py-4 bg-slate-50 text-slate-400 rounded-2xl font-black text-sm hover:text-slate-900 transition-colors"
+                >
+                  Back
+                </button>
+                <button 
+                  onClick={nextStep}
+                  className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black text-base hover:bg-rose-600 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3"
+                >
+                  Confirm Inspiration <ArrowRight size={18} />
+                </button>
+              </div>
+            </motion.section>
+          )}
+
+          {step === 4 && (
+            <motion.section
+              key="step4"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-12"
+            >
+              <div className="space-y-3">
+                <span className="text-rose-600 font-black uppercase tracking-[0.4em] text-[10px]">Assets</span>
+                <h1 className="text-6xl font-black text-slate-900 tracking-tighter font-heading leading-[0.9]">
+                  The <br/><span className="text-rose-600">logic.</span>
+                </h1>
+              </div>
+
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-rose-600 hover:border-rose-600 hover:bg-rose-50 transition-all group"
+                >
+                   <Plus size={20} />
+                   <span className="text-[9px] font-black uppercase tracking-widest">{isUploading ? "..." : "Add"}</span>
+                </button>
+                <input 
+                  type="file" 
+                  multiple 
+                  hidden 
+                  ref={fileInputRef} 
+                  onChange={handleFileUpload}
+                  accept="image/*"
+                />
+
+                <AnimatePresence>
+                  {screenshots.map((src, i) => (
+                    <motion.div 
+                      key={i} 
+                      initial={{ opacity: 0, scale: 0.8 }} 
+                      animate={{ opacity: 1, scale: 1 }} 
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="group relative aspect-square rounded-2xl overflow-hidden shadow-sm border border-slate-100"
+                    >
+                      <img src={src} className="w-full h-full object-cover" />
+                      <button 
+                        onClick={async () => {
+                          const next = screenshots.filter((_, idx) => idx !== i);
+                          setScreenshots(next);
+                          await updateDoc(doc(db, "projects", id as string), {
+                            "assets.screenshots": next
+                          });
+                        }}
+                        className="absolute inset-0 bg-rose-600/90 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-all backdrop-blur-sm"
+                      >
+                         <Trash2 size={16} />
+                      </button>
+                    </motion.div>
                   ))}
-               </div>
-            </motion.div>
+                </AnimatePresence>
+              </div>
+
+              <div className="flex gap-4 pt-6">
+                <button 
+                  onClick={prevStep}
+                  className="px-8 py-5 text-slate-400 font-black hover:text-slate-900 transition-colors"
+                >
+                  Back
+                </button>
+                <button 
+                  onClick={handleCreateVideo}
+                  disabled={isBaking}
+                  className="flex-1 py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-xl flex items-center justify-center gap-4 hover:bg-rose-600 transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-slate-900/20 relative overflow-hidden group"
+                >
+                  {isBaking ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} fill="currentColor" />}
+                  {isBaking ? "Processing..." : "Bake Production"}
+                </button>
+              </div>
+            </motion.section>
           )}
         </AnimatePresence>
       </main>

@@ -66,7 +66,7 @@ export default function AboutPage() {
 
             <div className="prose prose-lg text-gray-600 font-medium mb-10 max-w-2xl">
               <p>
-                Yo! I'm <strong>Zaid</strong>. I built saasvideo.online because I was tired of seeing incredible solo founders struggle to market their products simply because they couldn't afford a $2,000 agency video or didn't know how to use After Effects.
+                Yo! I'm <strong>Zaid</strong>. I built saasexplainer.online because I was tired of seeing incredible solo founders struggle to market their products simply because they couldn't afford a $2,000 agency video or didn't know how to use After Effects.
               </p>
               <p>
                 I combined my love for programmatic UI generation with the latest AI reasoning models to create a "Vibe Editor". Now, anyone can generate a pixel-perfect, motion-graphics masterpiece in just 10 minutes.
@@ -111,7 +111,7 @@ export default function AboutPage() {
              </div>
              <h3 className="text-3xl font-black mb-4 font-[var(--font-outfit)] tracking-tight">Our Vision</h3>
              <p className="text-gray-600 font-medium leading-relaxed text-lg">
-               To completely bridge the gap between "I have an idea" and "Here is my stunning launch video." We envision a future where <strong>saasvideo.online</strong> is the default render engine for every solo founder and indie maker globally.
+               To completely bridge the gap between "I have an idea" and "Here is my stunning launch video." We envision a future where <strong>saasexplainer.online</strong> is the default render engine for every solo founder and indie maker globally.
              </p>
           </motion.div>
         </div>

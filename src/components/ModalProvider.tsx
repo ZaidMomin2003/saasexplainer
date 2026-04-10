@@ -3,7 +3,9 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { 
   Dialog, 
-  DialogContent 
+  DialogContent,
+  DialogTitle,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, Trash2 } from "lucide-react";
@@ -92,12 +94,12 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
               </div>
 
               <div className="space-y-3">
-                <h3 className="text-3xl font-black text-slate-900 font-heading tracking-tight leading-none lowercase">
+                <DialogTitle className="text-3xl font-black text-slate-900 font-heading tracking-tight leading-none lowercase">
                   {options?.title || "Are you sure?"}
-                </h3>
-                <p className="text-slate-500 font-bold text-sm leading-relaxed max-w-[280px] mx-auto opacity-80">
+                </DialogTitle>
+                <DialogDescription className="text-slate-500 font-bold text-sm leading-relaxed max-w-[280px] mx-auto opacity-80">
                   {options?.description || "This action cannot be undone."}
-                </p>
+                </DialogDescription>
               </div>
             </div>
 

@@ -11,13 +11,13 @@ export default function PrivacyPage() {
       <main className="pt-32 pb-24 px-6 max-w-4xl mx-auto min-h-screen">
         <div className="mb-12">
           <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-6 font-[var(--font-outfit)] tracking-tight">Privacy Policy</h1>
-          <p className="text-gray-500 font-medium">Last Updated: March 24, 2026</p>
+          <p className="text-gray-500 font-medium">Last Updated: April 6, 2026</p>
         </div>
         
         <div className="prose prose-lg text-gray-600 font-medium">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Information We Collect</h2>
           <p className="mb-8">
-            When you use <strong>saasvideo.online</strong>, we collect information you provide, such as your email address when you create an account, and any data (URLs, screenshots, or text prompts) you input into our AI Director to generate videos. We also collect usage data to improve application performance.
+            When you use <strong>saasexplainer.online</strong>, we collect information you provide, such as your email address when you create an account, and any data (Website URLs, brand logos, or text prompts) you input into our AI Engine to generate videos. We also collect usage data to improve application performance.
           </p>
 
           <h2 className="text-2xl font-bold text-gray-900 mb-4">2. How We Use Your Information</h2>
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
 
           <h2 className="text-2xl font-bold text-gray-900 mb-4">5. Contact</h2>
           <p className="mb-8">
-            For questions or concerns about how your data is handled, please contact our privacy team at <a href="mailto:hello@saasvideo.online" className="text-indigo-600 hover:underline">hello@saasvideo.online</a>.
+            For questions or concerns about how your data is handled, please contact our privacy team at <a href="mailto:hello@saasexplainer.online" className="text-indigo-600 hover:underline">hello@saasexplainer.online</a>.
           </p>
         </div>
       </main>

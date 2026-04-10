@@ -2,28 +2,28 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Zap, Sparkles, Download } from "lucide-react";
+import { Globe, Sparkles, Check } from "lucide-react";
 
 const steps = [
   {
-    icon: <Zap size={22} className="text-rose-600" />,
+    icon: <Globe size={22} className="text-rose-600" />,
     step: "01",
-    title: "Upload your Vibe",
-    description: "Just drag and drop your screenshots and logos. No complex setup or URL crawling needed.",
+    title: "Link & Logo",
+    description: "Paste your website link and upload your brand logo. Our engine analyzes your SaaS in seconds.",
     bg: "bg-rose-50 border-rose-100/50 shadow-sm"
   },
   {
     icon: <Sparkles size={24} className="text-gray-900" />,
     step: "02",
-    title: "AI takes the wheel",
-    description: "Our Director AI writes the script, selects the best layouts, and generates pixel-perfect motion graphics automatically.",
+    title: "AI Production",
+    description: "The engine generates a script, syncs visuals, adds sound effects, music, and voice-over automatically.",
     bg: "bg-gray-50 border-transparent shadow-none"
   },
   {
-    icon: <Download size={24} className="text-gray-900" />,
+    icon: <Check size={24} className="text-gray-900" />,
     step: "03",
-    title: "Ready to Export",
-    description: "Preview the full video for free. Ask for as many AI tweaks as you want, and pay only when you download.",
+    title: "Satisfied Export",
+    description: "Request unlimited changes until you are wowed. Pay ONLY when you are ready to export the final video.",
     bg: "bg-rose-50 border-rose-100/50 shadow-sm"
   }
 ];

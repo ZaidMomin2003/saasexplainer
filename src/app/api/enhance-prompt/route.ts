@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
 
     const systemPrompt = `
-      You are an expert AI Director and creative copywriter for saasvideo.online.
+      You are an expert AI Director and creative copywriter for saasexplainer.online.
       The user is trying to write a "Design Vision Prompt" for their new SaaS video.
       Their current raw thoughts are:
       
@@ -23,7 +23,8 @@ export async function POST(req: Request) {
       
       Your job is to rewrite and ENHANCE this prompt into a highly cinematic, professional, and detailed creative direction.
       Make it sound like instructions for a high-end 3D motion graphics rendering engine.
-      Focus on aesthetics, pacing, transitions, and mood (e.g., "fast-paced tech reveal with sharp dark mode aesthetics, glowing neon borders, and dynamic 3D camera pan transitions...").
+      Focus on aesthetics, pacing, transitions, and mood. Use the new "Technical Mastery" modules (e.g. "Data-driven map flyovers," "high-fidelity audio visualizations," "dynamic captions-sync").
+      Example: "Fast-paced tech reveal with dark mode aesthetics, dynamic 3D camera pans, and a cinematic audio visualization synced to the brand narrative."
       
       Keep it between 40 to 80 words. DO NOT add any conversational filler like "Here is your enhanced prompt". Just return the prompt itself.
     `;

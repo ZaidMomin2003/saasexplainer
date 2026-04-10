@@ -47,10 +47,16 @@ export default function RenderPage() {
         const currentProgress = data.render?.progress || 0;
         setProgress(currentProgress);
 
-        if (currentProgress < 20) setCurrentStepIndex(0);
-        else if (currentProgress < 70) setCurrentStepIndex(1);
-        else if (currentProgress < 90) setCurrentStepIndex(2);
-        else setCurrentStepIndex(3);
+        // Adjust step index based on status and progress
+        if (data.status === "preparing") {
+          setCurrentStepIndex(0);
+        } else if (currentProgress < 70) {
+          setCurrentStepIndex(1);
+        } else if (currentProgress < 90) {
+          setCurrentStepIndex(2);
+        } else {
+          setCurrentStepIndex(3);
+        }
       }
       setLoading(false);
     });

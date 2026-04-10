@@ -25,11 +25,11 @@ export const Footer = () => {
                 <Play size={14} className="fill-current ml-0.5" />
               </div>
               <span className="font-black tracking-tighter text-xl group-hover:text-rose-400 transition-colors">
-                SaaSVideo
+                SaaSExplainer
               </span>
             </Link>
             <p className="text-gray-500 font-medium leading-relaxed tracking-tight text-sm max-w-[240px]">
-              The generative motion engine for world-class SaaS explainers.
+              Turn your website link into a world-class SaaS explainer automatically.
             </p>
             <div className="scale-90 origin-left">
               <SocialButton buttonText="Social Links" className="min-w-[160px]" />
@@ -63,7 +63,7 @@ export const Footer = () => {
             {
               title: "Legal",
               links: [
-                { name: "Privacy Policy", href: "/privacy-policy" },
+                { name: "Privacy Policy", href: "/privacy" },
                 { name: "Terms of Service", href: "/terms" },
                 { name: "Service Delivery", href: "/delivery" }
               ]
@@ -89,7 +89,7 @@ export const Footer = () => {
               <ShieldCheck size={12} className="text-emerald-500/50" />
               SSL Encrypted
             </div>
-            <span>© 2026 SaaSVideo.online</span>
+            <span>© 2026 SaaSExplainer.online</span>
           </div>
 
           <div className="text-[9px] font-black text-gray-700 tracking-widest uppercase">

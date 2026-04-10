@@ -1,78 +1,114 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 import { triggerRender } from "@/lib/render-service";
-import crypto from "crypto";
+import { dodo } from "@/lib/dodo";
 
 export async function POST(req: Request) {
-  const payload = await req.text();
-  const signature = req.headers.get("x-dodo-signature");
-  const secret = process.env.DODOPAYMENTS_WEBHOOK_SECRET;
+  try {
+    const rawBody = await req.text();
+    const signature = req.headers.get("x-dodo-signature") || "";
 
-  // 1. Signature Verification
-  if (!signature || !secret) {
-    return NextResponse.json({ error: "Missing signature or secret" }, { status: 400 });
-  }
+    if (!signature) {
+      console.warn("Webhook attempt without signature header.");
+      return NextResponse.json({ error: "No signature" }, { status: 400 });
+    }
 
-  const hmac = crypto.createHmac("sha256", secret);
-  const digest = hmac.update(payload).digest("hex");
+    // 1. Verify Webhook Signature using SDK helper
+    let event;
+    try {
+      const headersObject: Record<string, string> = {};
+      req.headers.forEach((value, key) => {
+        headersObject[key] = value;
+      });
 
-  if (signature !== digest) {
-    console.error("Invalid Webhook Signature");
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+      event = dodo.webhooks.unwrap(rawBody, {
+        headers: headersObject,
+        key: process.env.DODOPAYMENTS_WEBHOOK_SECRET,
+      });
+      console.log("Verified Dodo Webhook signature successfully.");
+    } catch (err: any) {
+      console.error("Webhook Verification Failed:", err.message);
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
 
-  // 2. Parse Event
-  const event = JSON.parse(payload);
-  
-  // Dodo event types: payment.captured, order.paid, session.completed
-  // Check metadata for projectId
-  const metadata = event.metadata || {};
-  const projectId = metadata.projectId;
+    // 2. Extract Metadata
+    const type = event.type;
+    const data = event.data as any;
+    const metadata = data?.metadata || {};
+    const { projectId, userId } = metadata;
 
-  if (!projectId) {
-    console.warn("No projectId found in webhook metadata");
-    return NextResponse.json({ received: true });
-  }
+    console.log(`Payment Webhook Event: ${type} for User: ${userId}, Project: ${projectId}`);
 
-  // 3. Trigger Logic
-  // Only trigger for success events
-  const successfulEvents = ['payment.captured', 'order.paid', 'payment.succeeded', 'payment.succeed'];
-  if (successfulEvents.includes(event.type)) {
-      console.log(`Payment confirmed for project: ${projectId}. Starting render...`);
-      
+    // Dodo event types: payment.captured, order.paid, payment.succeeded
+    const successfulEvents = ["payment.succeeded", "order.paid", "payment.captured"];
+
+    if (successfulEvents.includes(type) && projectId) {
       const projectRef = doc(db, "projects", projectId);
       const projectSnap = await getDoc(projectRef);
-      
+
       if (!projectSnap.exists()) {
         console.error(`Project ${projectId} not found in Firestore`);
-        return NextResponse.json({ error: "Project not found" }, { status: 404 });
+        return NextResponse.json({ received: true }); // Still return 200
       }
 
       const projectData = projectSnap.data();
-      
-      // Update payment status
+
+      // Check for Idempotency (avoid double rendering)
+      if (projectData.status === "rendering" || projectData.status === "completed" || projectData.render?.renderId) {
+        console.log(`Project ${projectId} already processed or rendering. Skipping.`);
+        return NextResponse.json({ received: true });
+      }
+
+      // 3. Update User Credits
+      if (userId && userId !== "anonymous") {
+        const userRef = doc(db, "users", userId);
+        await updateDoc(userRef, {
+          credits: increment(1),
+          lastPaymentAt: Date.now(),
+        }).catch((err) => {
+          console.error("Failed to update user credits:", err);
+        });
+      }
+
+      // 4. Mark as PAID and Status to PREPARING
       await updateDoc(projectRef, {
+        status: "preparing",
         "render.paid": true,
         "render.paidAt": Date.now(),
-        status: "preparing"
+        payment: {
+          id: data.payment_id || data.order_id,
+          amount: data.total_amount,
+          currency: data.currency,
+          completedAt: new Date().toISOString(),
+        },
       });
 
-      // Trigger the actual Lambda rendering
+      // 5. Trigger the actual Lambda rendering
+      console.log(`Triggering render for project: ${projectId}`);
       try {
         await triggerRender({
           projectId,
           inputProps: {
             code: projectData.code || "",
-            durationInFrames: parseInt(projectData.duration || "30") * 30,
-            fps: 30
-          }
+            durationInFrames: parseInt(projectData.duration || "10") * 30, // Default 10s if missing
+            fps: 30,
+          },
         });
+        console.log(`Lambda render triggered successfully for ${projectId}`);
       } catch (renderError) {
         console.error("Failed to trigger Lambda render:", renderError);
-        // We still return 200 because the payment was successful
+        // Maybe update status to FAILED if render trigger fails
+        await updateDoc(projectRef, {
+           status: "FAILED",
+           "render.error": "Failed to invoke rendering engine"
+        });
       }
-  }
+    }
 
-  return NextResponse.json({ received: true });
+    return NextResponse.json({ received: true });
+  } catch (error: any) {
+    console.error("Webhook Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }

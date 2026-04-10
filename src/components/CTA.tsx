@@ -41,11 +41,11 @@ export const CTA = () => {
           <div className="absolute inset-x-0 -inset-y-4 bg-rose-600/30 blur-[30px] rounded-full opacity-40 group-hover/btn:opacity-80 transition-opacity duration-700 pointer-events-none" />
           
           <Link 
-            href="/signup"
+            href="/waitlist"
             onClick={() => gtag.event({ action: 'cta_sign_up_click', category: 'conversion' })}
             className="relative w-full sm:w-auto px-12 py-5 rounded-2xl bg-rose-600 text-white font-black text-xl flex items-center justify-center gap-3 transition-all duration-500 hover:bg-rose-700 hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-rose-500/20 border border-white/5 group"
           >
-             Start for free
+             Join Waitlist
              <ArrowRight size={22} className="transition-transform group-hover:translate-x-1" />
           </Link>
         </div>

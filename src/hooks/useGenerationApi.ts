@@ -3,6 +3,7 @@ import {
   stripMarkdownFences,
   validateGptResponse,
 } from "@/helpers/sanitize-response";
+import { sanitizeCodeImports } from "@/helpers/sanitize-imports";
 import type {
   AssistantMetadata,
   ConversationContextMessage,
@@ -55,6 +56,11 @@ interface GenerationContext {
   frameImages?: string[];
   durationSeconds?: number;
   storyboard?: any[];
+  audioSettings?: {
+    includeSFX: boolean;
+    includeSpeech: boolean;
+  };
+  projectId?: string;
 }
 
 interface UseGenerationApiReturn {
@@ -90,6 +96,8 @@ export function useGenerationApi(): UseGenerationApiReturn {
         errorCorrection,
         frameImages,
         storyboard,
+        audioSettings,
+        projectId,
       } = context;
 
       const {
@@ -130,6 +138,8 @@ export function useGenerationApi(): UseGenerationApiReturn {
             frameImages,
             durationSeconds: context.durationSeconds,
             storyboard,
+            audioSettings,
+            projectId,
           }),
         });
 
@@ -156,9 +166,10 @@ export function useGenerationApi(): UseGenerationApiReturn {
         if (contentType.includes("application/json")) {
           const data = await response.json();
           const { code, summary, metadata } = data;
-          onCodeGenerated?.(code);
-          onGenerationComplete?.(code, summary, metadata);
-          const validation = validateGptResponse(code);
+          const sanitizedCode = sanitizeCodeImports(code);
+          onCodeGenerated?.(sanitizedCode);
+          onGenerationComplete?.(sanitizedCode, summary, metadata);
+          const validation = validateGptResponse(sanitizedCode);
           if (!validation.isValid && validation.error) {
             onError?.(validation.error, "validation");
           }
@@ -219,6 +230,7 @@ export function useGenerationApi(): UseGenerationApiReturn {
 
         let finalCode = stripMarkdownFences(accumulatedText);
         finalCode = extractComponentCode(finalCode);
+        finalCode = sanitizeCodeImports(finalCode);
         onCodeGenerated?.(finalCode);
         onClearPendingMessage?.();
         onGenerationComplete?.(
@@ -232,12 +244,11 @@ export function useGenerationApi(): UseGenerationApiReturn {
           onError?.(validation.error, "validation");
         }
       } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          console.log("Generation request was aborted (expected behavior)");
+          return;
+        }
         console.error("Error generating code:", error);
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred";
-        onError?.(errorMessage, "api");
       } finally {
         setIsLoading(false);
         onStreamingChange?.(false);

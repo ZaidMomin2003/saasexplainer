@@ -1,6 +1,7 @@
 "use client";
 
-import { Loader2, Undo2, Redo2, Sparkles } from "lucide-react";
+import { Loader2, Undo2, Redo2, Sparkles, Zap, Play } from "lucide-react";
+import { toast } from "sonner";
 import type { NextPage } from "next";
 import { useParams, useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -16,6 +17,7 @@ import { db } from "@/lib/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 import type { EditOperation, AssistantMetadata, ErrorCorrectionContext } from "@/types/conversation";
 import type { GenerationErrorType, StreamPhase } from "@/types/generation";
+import { MASTER_ENGINE_TEMPLATE } from "@/templates/MasterEngine";
 
 const MAX_CORRECTION_ATTEMPTS = 3;
 
@@ -40,6 +42,7 @@ function GeneratePageContent() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [activeSceneIndex, setActiveSceneIndex] = useState(0);
+  const [showCode, setShowCode] = useState(false);
 
   const {
     messages,
@@ -60,12 +63,6 @@ function GeneratePageContent() {
     isFirstGeneration,
     clearConversation,
   } = useConversationState(id);
-
-  const {
-    discoveryStep,
-    assets,
-    script
-  } = useProjectState(messages);
 
   const {
     code,
@@ -116,9 +113,6 @@ function GeneratePageContent() {
     const unsub = onSnapshot(doc(db, "projects", id as string), (doc) => {
       if (doc.exists()) {
         setProject(doc.data());
-        if (doc.data().status === "PLANNING") {
-          router.push(`/plan/${id}`);
-        }
       }
       setLoading(false);
     }, (error) => {
@@ -141,40 +135,44 @@ function GeneratePageContent() {
     }
   }, [isStreaming, markAsAiGenerated, compileCode]);
 
-  // Sync activeSceneIndex with conversation history on load
+  // AUTO-HYDRATION LOGIC (Instantly Forge Draft 1)
   useEffect(() => {
-    if (messages.length > 0 && project?.scenes) {
-      let maxIndex = 0;
-      messages.forEach(m => {
-        if (m.role === "user") {
-          const match = m.content.match(/Implement Scene (\d+)/);
-          if (match) {
-            const index = parseInt(match[1]) - 1;
-            if (index > maxIndex) maxIndex = index;
-          }
-        }
-      });
-      setActiveSceneIndex(maxIndex);
-    }
-  }, [messages, project?.scenes]);
-
-  /* Hollywood Workflow: Auto-start Scene 1 removed as per user request to avoid re-pasting prompts on visit */
-  /*
-    useEffect(() => {
-      if (project?.scenes && project.scenes.length > 0 && !hasGeneratedOnce && !isStreaming && !hasAutoStarted) {
+    if (isFirstGeneration && project?.assets?.logo && project?.status === "PLANNING" && !isStreaming && !hasAutoStarted) {
+      // Trigger Director API
+      const handleHydration = async () => {
         setHasAutoStarted(true);
-        const firstScene = project.scenes[0];
+        toast.info("Director analyzing brand assets...");
         
-        setTimeout(() => {
-          chatSidebarRef.current?.triggerGeneration({
-            customPrompt: `INITIAL FORGE: Implement Scene 1: "${firstScene.title}". Duration: ${firstScene.duration}s. Visual Instructions: ${firstScene.prompt}`,
-            forceInitial: true
+        try {
+          const res = await fetch("/api/director", {
+            method: "POST",
+            body: JSON.stringify({
+              website: project.website,
+              screenshots: project.assets.screenshots
+            })
           });
-        }, 1000);
-      }
-    }, [project, hasGeneratedOnce, isStreaming, hasAutoStarted]);
-  */
+          const data = await res.json();
+          
+          if (data.success) {
+            const blueprint = data.blueprint;
+            const hydratedCode = MASTER_ENGINE_TEMPLATE
+              .replace("/* {{BRANDING_JSON}} */", JSON.stringify(blueprint.branding))
+              .replace("/* {{CHAPTER_DATA_JSON}} */", JSON.stringify(blueprint.scenes))
+              .replace("/* {{TOGGLES_JSON}} */", JSON.stringify(project.audioSettings));
 
+            addAssistantMessage("Draft 1: Production Skeleton (120 FPS)", hydratedCode);
+            setCode(hydratedCode);
+            compileCode(hydratedCode);
+            setHasGeneratedOnce(true);
+          }
+        } catch (e) {
+          console.error("Hydration failed", e);
+        }
+      };
+
+      handleHydration();
+    }
+  }, [isFirstGeneration, project, isStreaming, hasAutoStarted, addAssistantMessage, setCode, compileCode]);
 
   const handleCodeChange = useCallback((newCode: string) => {
     setCode(newCode);
@@ -187,24 +185,16 @@ function GeneratePageContent() {
     }
   }, [setCode, compileCode, markAsUserEdited]);
 
-  const onGenerationComplete = useCallback((finalCode: string, summary?: string, metadata?: AssistantMetadata) => {
-    addAssistantMessage(summary || "Code updated", finalCode, metadata);
-    setHasGeneratedOnce(true);
-    setGenerationError(null);
-    setErrorCorrection(null);
-  }, [addAssistantMessage]);
-
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-white">
-        <Loader2 className="animate-spin text-indigo-600" size={32} />
+        <Loader2 className="animate-spin text-rose-600" size={32} />
       </div>
     );
   }
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden font-inter">
-      {/* Dynamic Background Glows */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-rose-600/5 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-rose-400/5 blur-[120px] rounded-full" />
@@ -213,7 +203,6 @@ function GeneratePageContent() {
       <ChatSidebar
         ref={chatSidebarRef}
         messages={messages}
-        pendingMessage={pendingMessage}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         hasManualEdits={hasManualEdits}
@@ -225,155 +214,112 @@ function GeneratePageContent() {
         onPromptChange={setPrompt}
         currentCode={code}
         conversationHistory={getFullContext()}
-        previouslyUsedSkills={getPreviouslyUsedSkills()}
         isFollowUp={!isFirstGeneration}
         onMessageSent={(p, img) => addUserMessage(p, img)}
-        onGenerationComplete={onGenerationComplete}
-        onErrorMessage={addErrorMessage}
-        errorCorrection={errorCorrection ?? undefined}
-        onPendingMessage={setPendingMessage}
-        onClearPendingMessage={clearPendingMessage}
-        onResetChat={async () => {
-          await clearConversation();
-          setHasAutoStarted(false);
-          setCode("");
+        onGenerationComplete={(finalCode, summary, metadata) => {
+          addAssistantMessage(summary || "Production refined", finalCode, metadata);
+          setHasGeneratedOnce(true);
         }}
         Component={Component}
-        fps={30}
-        durationInFrames={parseInt(project?.duration || "30") * 30}
+        fps={120}
+        durationInFrames={30 * 120}
         currentFrame={currentFrame}
+        audioSettings={project?.audioSettings}
+        projectId={id as string}
       />
 
       <main className="flex-1 flex flex-col relative min-w-0">
-        {/* Studio Header */}
         <header className="h-20 px-8 flex items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-xl z-20 shrink-0">
           <div className="flex items-center gap-6">
-            <div className="flex flex-col">
-              <h1 className="text-lg font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                {project?.name || "Untitled Studio"}
-                <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest border border-rose-200">Hollywood Studio</span>
-              </h1>
-              <div className="flex items-center gap-2 mt-1">
-                <p className="text-[11px] text-slate-500 font-medium font-mono uppercase tracking-widest leading-none">
-                  {project?.duration || 30}s • 30fps
-                </p>
-                <div className="h-1 w-1 bg-slate-300 rounded-full" />
-                <p className="text-[11px] text-rose-600 font-black uppercase tracking-widest leading-none">
-                  Scene {activeSceneIndex + 1} of {project?.scenes?.length || "?"}
-                </p>
-              </div>
-            </div>
+            <h1 className="text-lg font-bold tracking-tight text-slate-900 flex items-center gap-2">
+              {project?.name || "Untitled Studio"}
+              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest border border-rose-200">120 FPS Forge</span>
+            </h1>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1">
-              <button
-                onClick={async () => {
-                  const previousCode = await undo();
-                  if (previousCode !== null) {
-                    setCode(previousCode);
-                    compileCode(previousCode);
-                  }
-                }}
-                disabled={!canUndo || isStreaming}
-                className="p-1.5 rounded-lg hover:bg-white hover:shadow-sm disabled:opacity-30 disabled:pointer-events-none transition-all text-slate-600"
-                title="Undo (Ctrl+Z)"
-              >
-                <Undo2 size={18} />
-              </button>
-              <button
-                onClick={async () => {
-                  const nextCode = await redo();
-                  if (nextCode !== null) {
-                    setCode(nextCode);
-                    compileCode(nextCode);
-                  }
-                }}
-                disabled={!canRedo || isStreaming}
-                className="p-1.5 rounded-lg hover:bg-white hover:shadow-sm disabled:opacity-30 disabled:pointer-events-none transition-all text-slate-600"
-                title="Redo (Ctrl+Y)"
-              >
-                <Redo2 size={18} />
-              </button>
-            </div>
-            <div className="h-8 w-[1px] bg-slate-200 mx-2" />
-
+            <button 
+              onClick={() => setShowCode(!showCode)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${
+                showCode 
+                  ? 'bg-rose-50 border-rose-200 text-rose-600 shadow-inner' 
+                  : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+              }`}
+            >
+              <code className={showCode ? "text-rose-500" : "text-slate-400"}>&lt;/&gt;</code>
+              {showCode ? "Designer View" : "Engine Logic"}
+            </button>
+            <div className="h-4 w-[1px] bg-slate-200 mx-2" />
             <div className="flex items-center gap-2">
-              {project?.scenes && project.scenes.map((scene: any, i: number) => {
-                // Hollywood Logic: Only show EXACTLY the next scene in the queue
-                const nextToForge = messages.length === 0 ? 0 : activeSceneIndex + 1;
-                if (i !== nextToForge) return null;
-
-                return (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      setActiveSceneIndex(i);
-                      chatSidebarRef.current?.triggerGeneration({
-                        customPrompt: `FORGE SCENE ${i + 1}: Implement Scene ${i + 1}: "${scene.title}". Duration: ${scene.duration}s. Visual Instructions: ${scene.prompt}. IMPORTANT: Integrate this scene seamlessly into the existing timeline. DO NOT remove previous scenes.`,
-                      });
-                    }}
-                    disabled={isStreaming}
-                    className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center gap-2 hover:bg-rose-600 transition-all disabled:opacity-20 shadow-lg shadow-slate-900/10 active:scale-95 animate-in fade-in slide-in-from-right-2"
-                  >
-                    <Sparkles size={14} className="fill-current" />
-                    Forge Scene {i + 1}
-                  </button>
-                );
-              })}
+              {project?.scenes && project.scenes.map((scene: any, i: number) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    setActiveSceneIndex(i);
+                    chatSidebarRef.current?.triggerGeneration({
+                      customPrompt: `REPRODUCTION LOGIC: Update Chapter ${i + 1}: "${scene.title}". 
+                      Current Instruction: ${scene.prompt}.
+                      Identify the constant block "CHAPTER_${i + 1}_...".
+                      SURGICALLY update the visual logic. Use type: "edit".`,
+                    });
+                  }}
+                  disabled={isStreaming}
+                  className="px-4 py-2 bg-slate-900 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-rose-600 transition-all active:scale-95 shadow-lg shadow-slate-900/10"
+                >
+                  Phase {i + 1}
+                </button>
+              ))}
             </div>
+          </div>
 
             <RenderControls
               code={code}
-              durationInFrames={parseInt(project?.duration || "30") * 30}
-              fps={30}
+              durationInFrames={30 * 120}
+              fps={120}
               projectId={(id as string) || ""}
               projectName={project?.name || "Untitled Production"}
             />
-          </div>
         </header>
 
-        {/* Studio Content */}
         <div className="flex-1 flex flex-col overflow-hidden p-6 gap-6">
-          <div className="flex-1 min-h-0 flex flex-col gap-6">
-            {/* Preview Section */}
-            <section className="bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative group overflow-hidden flex-1 flex flex-col">
-              <AnimationPlayer
-                Component={generationError ? null : Component}
-                durationInFrames={parseInt(project?.duration || "30") * 30}
-                fps={30}
-                onDurationChange={() => { }}
-                onFpsChange={() => { }}
+          <section className={`bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative group overflow-hidden transition-all duration-500 flex flex-col ${
+            showCode ? 'h-[35%] p-4' : 'flex-1 p-8'
+          }`}>
+            <AnimationPlayer
+                Component={Component}
+                durationInFrames={30 * 120}
+                fps={120}
                 isCompiling={isCompiling}
                 isStreaming={isStreaming}
                 error={generationError?.message || codeError || null}
-                errorType={(generationError?.type as any) || "api"}
                 code={code}
                 onRuntimeError={setRuntimeError}
                 onFrameChange={setCurrentFrame}
+                onDurationChange={() => {}}
+                onFpsChange={() => {}}
+              />
+          </section>
+
+          {showCode && (
+            <section className="flex-1 min-h-0 bg-white rounded-[2rem] p-4 shadow-[0_12px_40px_rgb(0,0,0,0.08)] border border-slate-100 overflow-hidden animate-in slide-in-from-bottom-8">
+              <CodeEditor
+                code={code}
+                onChange={handleCodeChange}
+                isStreaming={isStreaming}
+                streamPhase={streamPhase}
               />
             </section>
-          </div>
+          )}
         </div>
       </main>
     </div>
   );
 }
 
-function LoadingFallback() {
-  return (
-    <div className="flex h-screen w-screen items-center justify-center bg-white">
-      <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-    </div>
-  );
-}
-
-const GeneratePage: NextPage = () => {
-  return (
-    <Suspense fallback={<LoadingFallback />}>
-      <GeneratePageContent />
-    </Suspense>
-  );
-};
+const GeneratePage: NextPage = () => (
+  <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><Loader2 className="animate-spin text-rose-600" /></div>}>
+    <GeneratePageContent />
+  </Suspense>
+);
 
 export default GeneratePage;

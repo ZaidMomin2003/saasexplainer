@@ -130,7 +130,7 @@ export const ProjectCreationOverlay = ({ isOpen, onClose }: { isOpen: boolean, o
         prompt: formData.prompt, 
         name: formData.name,
         duration: "5", // Default or extract from settings if available
-        model: "gemini-2.0-flash" 
+        model: "gemini-2.5-pro" 
       });
       router.push(`/generate?${params.toString()}`);
     } catch (err: any) {

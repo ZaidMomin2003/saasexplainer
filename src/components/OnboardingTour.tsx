@@ -28,43 +28,43 @@ interface Slide {
 const slides: Slide[] = [
   {
     id: 1,
-    title: "Welcome to Saas Explainer Studio",
-    description: "Your AI-powered motion designer. Think of it as 'Lovable' for video creation. Transform your SaaS UI into high-converting explainers in seconds.",
+    title: "The Lovable for Video",
+    description: "Welcome to Saas Explainer Studio. We transform your SaaS UI into high-converting, cinematic animations. Think of it as 'Lovable' for your video marketing.",
     icon: <Rocket className="w-8 h-8" />,
-    tips: ["Start by creating a new project", "Paste your app URL", "Let the AI analyze your brand"],
+    tips: ["Start with a new project", "Choose your brand's atmosphere", "Let our AI analyze your goals"],
     color: "from-rose-500 to-orange-500"
   },
   {
     id: 2,
-    title: "The Art of Prompting",
-    description: "Better prompts mean better results. Be specific about the vibe, pacing, and camera movements. The more context you give, the more cinematic the output.",
+    title: "Maximum Visual Accuracy",
+    description: "For the most accurate renders, provide context. Upload high-res logos, dashboard screenshots, and your website URL so the AI can mimic your UI perfectly.",
     icon: <Sparkles className="w-8 h-8" />,
-    tips: ["Use words like 'Cinematic', 'Glassmorphism', 'Sleek'", "Mention specific features to highlight", "Define the target audience's vibe"],
+    tips: ["Upload SVG logos for crisp resolution", "Add screenshots of every user step", "Paste your website for brand colors"],
     color: "from-purple-500 to-indigo-500"
   },
   {
     id: 3,
-    title: "Visual Assets Matter",
-    description: "Ample screenshots lead to seamless transitions. Upload high-resolution captures of your dashboard, features, and logos to give the AI more to work with.",
-    icon: <Layers className="w-8 h-8" />,
-    tips: ["Upload your SVG logo for crisp renders", "Provide screenshots of key user flows", "Use the 'Upload Assets' button in the builder"],
+    title: "Unlimited Precision Tweaks",
+    description: "Refine your video until it's perfect. Don't be shy—ask for 3-4 changes at a time (like 'make it faster, change text to blue, and add a zoom') for maximum efficiency.",
+    icon: <RotateCcw className="w-8 h-8" />,
+    tips: ["Batch your requests (3-4 changes)", "Free unlimited edits forever", "Refine timing, colors, and camera"],
     color: "from-blue-500 to-cyan-500"
   },
   {
     id: 4,
-    title: "Export in 4K for Just $16",
-    description: "Professional grade renders at your fingertips. Pay once, get high-fidelity 4K exports for your commercial projects. Plus, enjoy free unlimited edits forever.",
-    icon: <CreditCard className="w-8 h-8" />,
-    tips: ["4K High-Bitrate Export for $16", "Free unlimited project edits", "Lottie & GIF exports supported"],
-    color: "from-emerald-500 to-teal-500"
+    title: "Surgical Frame-Editing",
+    description: "Need to fix a specific moment? Play the video to the exact frame you want to change, and click the 'Frame' button to start an AI edit right there.",
+    icon: <Zap className="w-8 h-8" />,
+    tips: ["Play to the exact frame to edit", "Click the frame button in the player", "AI target-edits that specific scene"],
+    color: "from-amber-400 to-orange-500"
   },
   {
     id: 5,
-    title: "Revolutionary Editing",
-    description: "Forget complex timelines. Refine your video using our AI-assisted frame replacement and scene-specific fine-tuning tools.",
-    icon: <Zap className="w-8 h-8" />,
-    tips: ["AI-assisted frame replacement", "Real-time scene specific refinement", "One-click brand identity swapping"],
-    color: "from-amber-500 to-orange-600"
+    title: "Pro 4K Export",
+    description: "Once you're satisfied, unlock a high-bitrate 4K export for just $27. It's yours to own with commercial rights and no recurring subscriptions.",
+    icon: <CreditCard className="w-8 h-8" />,
+    tips: ["4K High-Bitrate Production", "Standard Pricing: $27 per video", "Full commercial usage rights"],
+    color: "from-emerald-500 to-teal-500"
   }
 ];
 

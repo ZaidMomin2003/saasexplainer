@@ -36,7 +36,7 @@ export const Pricing = () => {
              whileInView={{ opacity: 1, y: 0 }}
              className="text-xl text-gray-500 font-medium leading-relaxed max-w-xl tracking-tight"
            >
-             Zero subscription fees. Zero manual keyframing. Just pay for the hardware time when you're ready to download.
+             Zero subscription fees. Zero risk. Join our waitlist today to lock in your founding member deal and get exclusive early access.
            </motion.p>
         </div>
 
@@ -69,12 +69,12 @@ export const Pricing = () => {
               </div>
               <div className="p-8 glass rounded-[2.5rem] border-gray-200/50 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl shadow-black/5">
                  <div>
-                    <h3 className="text-2xl font-black mb-1 text-gray-950 tracking-tight">Drafting is free.</h3>
-                    <p className="text-gray-500 font-medium text-sm">Scripts, revisions, and full previews. $0 forever.</p>
+                    <h3 className="text-2xl font-black mb-1 text-gray-950 tracking-tight">Unlimited changes are free.</h3>
+                    <p className="text-gray-500 font-medium text-sm">Drafts, revisions, and full watermarked previews. $0 forever.</p>
                  </div>
                  <div className="flex items-center gap-2 bg-gray-950/5 px-4 py-2 rounded-full border border-gray-950/10 whitespace-nowrap">
                     <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Render Pipeline Active</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Production Pipeline Active</span>
                  </div>
               </div>
            </div>
@@ -93,7 +93,7 @@ export const Pricing = () => {
                     <div className="flex justify-between items-start mb-12">
                        <div>
                           <h4 className="text-gray-500 font-black uppercase tracking-[0.2em] text-[10px] mb-3">One-Time License</h4>
-                          <h3 className="text-3xl font-black tracking-tight leading-none text-white">Studio Render</h3>
+                          <h3 className="text-3xl font-black tracking-tight leading-none text-white">Studio Export</h3>
                        </div>
                         <div className="bg-white/5 text-white/50 text-[9px] font-black px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-[0.2em]">
                            April Offer
@@ -102,15 +102,14 @@ export const Pricing = () => {
 
                       <div className="flex flex-col gap-2 mb-10 p-6 bg-white/5 rounded-[2rem] border border-white/5 relative overflow-hidden group/price">
                          <div className="flex items-end gap-3 text-white">
-                            <span className="text-7xl font-black tracking-[-0.05em] leading-[0.85] tabular-nums">$29</span>
+                            <span className="text-7xl font-black tracking-[-0.05em] leading-[0.85] tabular-nums">Free</span>
                             <div className="flex flex-col mb-1 leading-none">
-                               <span className="text-[11px] font-black opacity-40 uppercase tracking-[0.1em]">per render</span>
-                               <span className="text-[10px] font-black text-red-500/80 mt-2 uppercase tracking-tighter line-through opacity-80 tabular-nums">Soon $49.00</span>
+                               <span className="text-[11px] font-black opacity-40 uppercase tracking-[0.1em]">to start</span>
                             </div>
                          </div>
                          <div className="mt-6 pt-6 border-t border-white/10 flex items-center justify-between">
                             <p className="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em]">
-                               Valid until April 30
+                               Early Access Special
                             </p>
                             <Sparkles size={14} className="text-rose-400" />
                          </div>
@@ -137,13 +136,13 @@ export const Pricing = () => {
                     </ul>
 
                     <Link 
-                      href="/signup"
+                      href="/waitlist"
                       onClick={() => gtag.event({ action: 'pricing_sign_up_click', category: 'conversion' })}
                       className="w-full bg-rose-600 text-white py-5 rounded-2xl font-black text-lg tracking-tight hover:bg-rose-700 transition-all shadow-xl shadow-rose-500/20 active:scale-[0.98] block text-center"
                     >
-                      Start For Free
+                      Join waitlist
                     </Link>
-                    <p className="text-center mt-6 text-[10px] font-black text-white/30 uppercase tracking-[0.2em] leading-none">No account shared required</p>
+                    <p className="text-center mt-6 text-[10px] font-black text-white/30 uppercase tracking-[0.2em] leading-none">Lock in your lifetime spot</p>
                  </div>
               </motion.div>
            </div>

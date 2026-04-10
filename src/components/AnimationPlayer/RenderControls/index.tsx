@@ -12,6 +12,8 @@ import RenderPaymentDrawer from "../../RenderPaymentDrawer";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { toast } from "sonner";
+
 export const RenderControls: React.FC<{
   code: string;
   durationInFrames: number;
@@ -43,6 +45,7 @@ export const RenderControls: React.FC<{
   }, [code, durationInFrames, fps, state.status, undo]);
 
   const handlePay = async () => {
+    const toastId = toast.loading("Connecting to Premium Checkout...");
     try {
       console.log("Creating Dodo Checkout session...");
       const response = await fetch('/api/payments/checkout', { 
@@ -54,13 +57,14 @@ export const RenderControls: React.FC<{
       const result = await response.json();
       
       if (result.type === 'success' && result.data.checkout_url) {
+        toast.success("Redirecting to checkout...", { id: toastId });
         window.location.href = result.data.checkout_url;
       } else {
         throw new Error(result.message || "Failed to create checkout session");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Payment Error:", err);
-      alert("Failed to start payment. Please try again.");
+      toast.error(err.message || "Failed to start payment. Please try again.", { id: toastId });
     }
   };
 

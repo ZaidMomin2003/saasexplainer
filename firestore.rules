@@ -8,6 +8,26 @@ service cloud.firestore {
       allow read, update, delete: if false;
     }
 
+    // User profiles & Credits
+    match /users/{userId} {
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null;
+    }
+
+    // Projects: Owned by user
+    match /projects/{projectId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth != null && (
+        resource == null || resource.data.userId == request.auth.uid
+      );
+    }
+
+    // Support Tickets: Submission only
+    match /support_tickets/{ticketId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if false; 
+    }
+
     // Default: Deny all other access
     match /{document=**} {
       allow read, write: if false;

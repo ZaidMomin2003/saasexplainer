@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import { 
   ChevronLeft, 
   Zap, 
@@ -79,6 +80,7 @@ function DirectorContent() {
   };
 
   const handleStartProduction = async () => {
+    const toastId = toast.loading("Saving Storyboard & Forging Engine...");
     setIsSaving(true);
     try {
       await updateDoc(doc(db, "projects", id as string), {
@@ -86,10 +88,11 @@ function DirectorContent() {
         status: "GENERATING",
         updatedAt: Date.now()
       });
+      toast.success("Storyboard Locked! Heading to Studio...", { id: toastId });
       router.push(`/generate/${id}`);
     } catch (err) {
       console.error("Failed to save storyboard:", err);
-      alert("Failed to sync with studio. Check connection.");
+      toast.error("Failed to sync with studio. Check connection.", { id: toastId });
     } finally {
       setIsSaving(false);
     }
@@ -121,6 +124,30 @@ function DirectorContent() {
             <span className="text-sm font-black tracking-tighter uppercase italic font-[var(--font-outfit)] leading-none">Director Studio <span className="text-rose-600">Storyboard</span></span>
             <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mt-1">{project?.name} • {project?.duration}s Rendering</span>
           </div>
+        </div>
+
+        <div className="flex items-center gap-6 border-r border-slate-100 pr-6">
+           <div className="flex flex-col items-end">
+              <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Production Vibe</span>
+              <select 
+                value={project?.vibe || "tech_minimal_1"}
+                onChange={async (e) => {
+                  const newVibe = e.target.value;
+                  await updateDoc(doc(db, "projects", id as string), { vibe: newVibe });
+                  toast.success(`Atmosphere synced: ${newVibe.replace(/_/g, ' ')}`);
+                }}
+                className="bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-[10px] font-black uppercase tracking-widest text-slate-600 outline-none hover:border-rose-300 transition-all cursor-pointer"
+              >
+                <option value="tech_minimal_1">Tech Minimal 01</option>
+                <option value="tech_minimal_2">Tech Minimal 02</option>
+                <option value="premium_luxury">Premium Luxury</option>
+                <option value="corporate_business">Corporate Business</option>
+                <option value="ai_product">AI Product</option>
+                <option value="b2b_professional">B2B Professional</option>
+                <option value="modern_business">Modern Business</option>
+                <option value="pro_studio">Pro Studio</option>
+              </select>
+           </div>
         </div>
 
         <div className="flex items-center gap-4">

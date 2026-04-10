@@ -2,6 +2,7 @@
 
 import { Player, type ErrorFallback, type PlayerRef } from "@remotion/player";
 import React, { useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { ErrorDisplay, type ErrorType } from "../ErrorDisplay";
 
 import AILoadingState from "../AILoadingState";
@@ -53,6 +54,20 @@ export const AnimationPlayer: React.FC<AnimationPlayerProps> = ({
   onFrameChange,
 }) => {
   const playerRef = useRef<PlayerRef>(null);
+  const hasToastedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isStreaming && Component && !hasToastedRef.current) {
+      toast.success("Project Forged Successfully!", {
+        description: "Your cinematic production is ready to view.",
+        duration: 5000,
+      });
+      hasToastedRef.current = true;
+    }
+    if (isStreaming) {
+      hasToastedRef.current = false;
+    }
+  }, [isStreaming, Component]);
 
   // Listen for runtime errors from the Player's error boundary
   // Component is included in deps because the Player remounts when Component changes (via key={Component.toString()})
@@ -135,6 +150,7 @@ export const AnimationPlayer: React.FC<AnimationPlayerProps> = ({
           errorFallback={renderErrorFallback}
           spaceKeyToPlayOrPause={false}
           clickToPlay={false}
+          acknowledgeRemotionLicense
         />
       </div>
     );

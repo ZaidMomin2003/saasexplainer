@@ -40,46 +40,86 @@ export function validateGptResponse(response: string): ValidationResult {
 
 /**
  * Extract only the component code, removing any trailing text/commentary.
- * Uses brace counting to find the end of the component.
+ * Uses a context-aware brace scanner that ignores braces in strings and comments.
  */
 export function extractComponentCode(code: string): string {
   // Find the component declaration start
+  // Pattern: export const [Name] = () => {
   const exportMatch = code.match(
     /export\s+const\s+\w+(?::\s*[^{=]+)?\s*=\s*(?:\([^{]*\)|[^{=]+)\s*=>\s*\{/,
   );
 
-  if (exportMatch && exportMatch.index !== undefined) {
-    const declarationStart = exportMatch.index;
-    const bodyStart = declarationStart + exportMatch[0].length;
+  if (!exportMatch || exportMatch.index === undefined) {
+    return code; // Fallback: return as-is
+  }
 
-    // Count braces to find the matching closing brace
-    let braceCount = 1;
-    let endIndex = bodyStart;
+  const declarationStart = exportMatch.index;
+  const bodyStart = declarationStart + exportMatch[0].length;
 
-    for (let i = bodyStart; i < code.length; i++) {
-      const char = code[i];
-      if (char === "{") {
-        braceCount++;
-      } else if (char === "}") {
-        braceCount--;
-        if (braceCount === 0) {
-          endIndex = i;
-          break;
+  let braceCount = 1;
+  let i = bodyStart;
+  
+  let inSingleQuote = false;
+  let inDoubleQuote = false;
+  let inBacktick = false;
+  let inSingleLineComment = false;
+  let inMultiLineComment = false;
+
+  while (i < code.length && braceCount > 0) {
+    const char = code[i];
+    const nextChar = code[i + 1];
+    const prevChar = code[i - 1];
+
+    // Handle Comments
+    if (!inSingleQuote && !inDoubleQuote && !inBacktick) {
+      if (inSingleLineComment) {
+        if (char === "\n") inSingleLineComment = false;
+      } else if (inMultiLineComment) {
+        if (char === "*" && nextChar === "/") {
+          inMultiLineComment = false;
+          i++; // Skip the /
+        }
+      } else {
+        if (char === "/" && nextChar === "/") {
+          inSingleLineComment = true;
+          i++;
+        } else if (char === "/" && nextChar === "*") {
+          inMultiLineComment = true;
+          i++;
         }
       }
     }
 
-    if (braceCount === 0) {
-      // Return everything from start of code to end of component (including closing brace and semicolon)
-      let result = code.slice(0, endIndex + 1);
-      // Add semicolon if not present
-      if (!result.trim().endsWith(";")) {
-        result = result.trimEnd() + ";";
+    // Handle Strings (if not in a comment)
+    if (!inSingleLineComment && !inMultiLineComment) {
+      if (char === "'" && prevChar !== "\\") {
+        if (!inDoubleQuote && !inBacktick) inSingleQuote = !inSingleQuote;
+      } else if (char === '"' && prevChar !== "\\") {
+        if (!inSingleQuote && !inBacktick) inDoubleQuote = !inDoubleQuote;
+      } else if (char === "`" && prevChar !== "\\") {
+        if (!inSingleQuote && !inDoubleQuote) inBacktick = !inBacktick;
       }
-      return result.trim();
     }
+
+    // Capture Braces (if not in string or comment)
+    if (!inSingleQuote && !inDoubleQuote && !inBacktick && !inSingleLineComment && !inMultiLineComment) {
+      if (char === "{") braceCount++;
+      else if (char === "}") braceCount--;
+    }
+
+    if (braceCount === 0) break;
+    i++;
   }
 
-  // Fallback: return as-is
+  // If we found a balanced component, slice it and append semicolon if needed
+  if (braceCount === 0) {
+    let result = code.slice(0, i + 1);
+    const trimmedResult = result.trimEnd();
+    if (!trimmedResult.endsWith(";") && !trimmedResult.endsWith("}")) {
+      result = trimmedResult + ";";
+    }
+    return result.trim();
+  }
+
   return code;
 }

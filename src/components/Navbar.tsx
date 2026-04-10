@@ -60,7 +60,7 @@ export const Navbar = () => {
                 <Play size={12} className="fill-current ml-0.5" />
               </div>
               <span className="font-bold tracking-tight text-gray-900 text-base leading-none">
-                SaaSVideo
+                SaaSExplainer
               </span>
             </Link>
 
@@ -84,18 +84,11 @@ export const Navbar = () => {
                 ) : (
                   <>
                     <Link 
-                      href="/login"
-                      onClick={() => gtag.event({ action: 'sign_in_attempt', category: 'auth' })}
-                      className="text-gray-900 px-4 py-2 font-bold text-[13px] hover:text-rose-600 transition-colors"
-                    >
-                      Sign In
-                    </Link>
-                    <Link 
-                      href="/signup"
+                      href="/waitlist"
                       onClick={() => gtag.event({ action: 'sign_up_click', category: 'conversion' })}
                       className="bg-rose-600 text-white px-6 py-3 rounded-xl font-bold text-[13px] hover:bg-rose-700 transition-all active:scale-95 shadow-lg shadow-rose-500/20 flex items-center gap-2 group pointer-events-auto"
                     >
-                      Start for free
+                      Join Waitlist
                       <Sparkles size={14} className="group-hover:rotate-12 transition-transform opacity-70" />
                     </Link>
                   </>
@@ -141,25 +134,15 @@ export const Navbar = () => {
                 ) : (
                   <>
                     <Link 
-                      href="/signup"
+                      href="/waitlist"
                       onClick={() => {
                         setIsOpen(false);
                         gtag.event({ action: 'sign_up_click', category: 'conversion' });
                       }}
                       className="bg-rose-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-rose-500/20 flex items-center justify-center gap-2"
                     >
-                      Start for free
+                      Join Waitlist
                       <Sparkles size={18} />
-                    </Link>
-                    <Link 
-                      href="/login"
-                      onClick={() => {
-                        setIsOpen(false);
-                        gtag.event({ action: 'sign_in_attempt', category: 'auth' });
-                      }}
-                      className="text-gray-950 py-4 font-black text-lg"
-                    >
-                      Sign In
                     </Link>
                   </>
                 )}

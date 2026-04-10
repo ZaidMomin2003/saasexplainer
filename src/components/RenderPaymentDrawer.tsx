@@ -134,7 +134,7 @@ export default function RenderPaymentDrawer({
           </motion.div>
 
           <motion.div variants={itemVariants as any}>
-            <PriceTag discountedPrice={29} price={49} />
+            <PriceTag discountedPrice={27} price={49} />
           </motion.div>
 
           <motion.div variants={itemVariants as any} className="space-y-4">
@@ -143,7 +143,7 @@ export default function RenderPaymentDrawer({
                   onClick={onPay}
                   className="w-full py-5 bg-rose-600 text-white rounded-2xl font-black text-xl flex items-center justify-center gap-3 hover:bg-rose-500 transition-all shadow-xl shadow-rose-500/20 active:scale-[0.98]"
                 >
-                  Confirm & Pay $29
+                  Confirm & Pay $27
                   <CreditCard size={22} className="opacity-60" />
                 </button>
                 

@@ -34,3 +34,10 @@ From dizzily-star : Yaa they fired them, they are ofc giving salary but are remo
 @Zaid Ah, no calls today. I am sorry i am with my own family as well. 
 
 @Parvathi maam, Actually my dad is asking about the joining date, he wants to confirm it unofficially. Will it be ok if i ask you on call maam? Its a little urgent maam and necessary. Will it be ok? 
+
+
+@Parvathi maam, Maam can we get on a call today?
+
+@Zaid, I will let you know dear. Its not my duty to update you about everything. but i understand your situation. I will let you know. And please dont ask me again and again.
+
+@everyone from @admin, Office joining date is 27th, Wait for official letter. 

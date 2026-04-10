@@ -149,7 +149,7 @@ export function useConversationState(projectId?: string) {
   );
 
   const addErrorMessage = useCallback(
-    (
+    async (
       content: string,
       errorType: "edit_failed" | "api" | "validation",
       failedEdit?: EditOperation,
@@ -162,13 +162,23 @@ export function useConversationState(projectId?: string) {
         errorType,
         failedEdit,
       };
-      setState((prev) => ({
-        ...prev,
-        messages: [...prev.messages, message],
-      }));
+
+      const newState = {
+        ...state,
+        messages: [...state.messages, message],
+      };
+
+      setState(newState);
+
+      if (projectId) {
+        await updateDoc(doc(db, "projects", projectId), {
+          "conv_state.messages": newState.messages
+        }).catch(console.error);
+      }
+
       return message.id;
     },
-    [],
+    [state, projectId],
   );
 
   const markManualEdit = useCallback(async (currentCode: string) => {

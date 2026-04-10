@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowRight, Clock, Type, Sparkles } from "lucide-react";
+import { X, ArrowRight, Type, Sparkles, Volume2, Mic, Music2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -18,45 +18,69 @@ export const NewProjectModal = ({ isOpen, onClose }: NewProjectModalProps) => {
   const router = useRouter();
   const { user } = useAuth();
   const [name, setName] = useState("");
-  const [duration, setDuration] = useState("30");
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [logo, setLogo] = useState<string | null>(null);
+  const [screenshots, setScreenshots] = useState<string[]>([]);
+  const [includeSFX, setIncludeSFX] = useState(true);
+  const [includeSpeech, setIncludeSpeech] = useState(true);
+  const [includeMusic, setIncludeMusic] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const durations = [
-    { value: "15", label: "15 Seconds", desc: "Short & punchy teaser" },
-    { value: "30", label: "30 Seconds", desc: "Perfect for quick intros" },
-    { value: "45", label: "45 Seconds", desc: "Great for social ads" },
-    { value: "60", label: "60 Seconds", desc: "Standard explainer" },
-    { value: "90", label: "90 Seconds", desc: "Deep dive detail" },
-  ];
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setLogo(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleScreenshotsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const newScreenshots: string[] = [];
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        newScreenshots.push(reader.result as string);
+        if (newScreenshots.length === files.length) {
+          setScreenshots(prev => [...prev, ...newScreenshots].slice(0, 5));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || loading) return;
+    if (!name.trim() || !websiteUrl.trim() || !logo || loading) return;
     
     setLoading(true);
 
     try {
-      // Create a new project in Firestore to get a persistent ID
       const docRef = await addDoc(collection(db, "projects"), {
         userId: user?.uid,
         name: name.trim(),
-        duration: parseInt(duration),
+        website: websiteUrl.trim(),
+        duration: 30,
+        fps: 120,
         status: "PLANNING",
         createdAt: serverTimestamp(),
-        discoveryStep: "LOGO",
+        audioSettings: {
+          includeSFX,
+          includeSpeech,
+          includeMusic,
+        },
         assets: {
-          logo: null,
-          screenshots: []
-        }
+          logo: logo,
+          screenshots: screenshots
+        },
+        updatedAt: Date.now()
       });
 
-      // Navigate to the planning phase with the new ID
-      router.push(`/plan/${docRef.id}`);
+      router.push(`/generate/${docRef.id}`);
       onClose();
     } catch (err) {
       console.error("Error creating project:", err);
-      // Fallback if Firebase fails
-      router.push(`/plan/temp-${Date.now()}`);
       onClose();
     } finally {
       setLoading(false);
@@ -89,20 +113,20 @@ export const NewProjectModal = ({ isOpen, onClose }: NewProjectModalProps) => {
             >
                <Loader 
                 title="Baking Studio" 
-                subtitle="Initializing cinematic manifests and production pipelines..." 
+                subtitle="Initializing cinematic manifests and production pipelines at 120 FPS..." 
                />
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className="flex items-center justify-between px-10 py-10 border-b border-slate-100">
+        <div className="flex items-center justify-between px-10 py-8 border-b border-slate-100">
            <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-slate-900/10">
                  <Sparkles size={24} />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">New Production</h2>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Initialize cinematic manifest</p>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">One-Click Forge</h2>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5" style={{ color: '#64748b' }}>Instant Elite Production</p>
               </div>
            </div>
            <button 
@@ -113,16 +137,16 @@ export const NewProjectModal = ({ isOpen, onClose }: NewProjectModalProps) => {
            </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-10 space-y-10">
+        <form onSubmit={handleSubmit} className="p-10 space-y-6 overflow-y-auto max-h-[75vh]">
            <div className="space-y-4">
-              <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                 <Type size={14} className="text-rose-500" /> Production Title
+              <label className="flex items-center gap-2 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                 <Type size={14} className="text-rose-500" /> Project Name
               </label>
               <input 
                 autoFocus 
                 type="text" 
-                placeholder="e.g. Acme SaaS Explainer v1" 
-                className="w-full text-xl font-bold p-6 bg-slate-50 border border-slate-200 rounded-2xl focus:border-rose-300 focus:bg-white focus:ring-4 focus:ring-rose-500/5 outline-none transition-all placeholder:text-slate-300 text-slate-900" 
+                placeholder="Product Launch v1" 
+                className="w-full text-lg font-bold p-5 bg-slate-100/50 border border-slate-200 rounded-2xl focus:border-rose-300 focus:bg-white outline-none transition-all placeholder:text-slate-400 text-slate-900" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)} 
                 disabled={loading}
@@ -130,52 +154,113 @@ export const NewProjectModal = ({ isOpen, onClose }: NewProjectModalProps) => {
            </div>
 
            <div className="space-y-4">
-              <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                 <Clock size={14} className="text-rose-500" /> Target Duration
+              <label className="flex items-center gap-2 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                 <Sparkles size={14} className="text-rose-500" /> Website URL
               </label>
-              <div className="grid grid-cols-2 gap-4">
-                 {durations.map((d) => (
-                   <button
-                     key={d.value}
-                     type="button"
-                     onClick={() => setDuration(d.value)}
-                     disabled={loading}
-                     className={`p-5 rounded-2xl border-2 text-left transition-all relative overflow-hidden group ${
-                       duration === d.value 
-                         ? 'border-rose-600 bg-rose-50/50' 
-                         : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'
-                     }`}
-                   >
-                      <div className={`text-base font-bold mb-0.5 transition-colors ${duration === d.value ? 'text-rose-900' : 'text-slate-900'}`}>
-                        {d.label}
-                      </div>
-                      <div className="text-[10px] font-semibold text-slate-500">
-                        {d.desc}
-                      </div>
-                      
-                      {duration === d.value && (
-                        <div className="absolute top-3 right-3 w-4 h-4 bg-rose-600 rounded-full flex items-center justify-center">
-                           <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                        </div>
-                      )}
-                   </button>
-                 ))}
+              <input 
+                type="url" 
+                placeholder="https://your-saas.com" 
+                className="w-full text-lg font-bold p-5 bg-slate-100/50 border border-slate-200 rounded-2xl focus:border-rose-300 focus:bg-white outline-none transition-all placeholder:text-slate-400 text-slate-900" 
+                value={websiteUrl} 
+                onChange={(e) => setWebsiteUrl(e.target.value)} 
+                disabled={loading}
+              />
+           </div>
+
+           <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <label className="flex items-center gap-2 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                   Upload Logo
+                </label>
+                <div className="relative group">
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                    disabled={loading}
+                  />
+                  <div className={`p-4 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 transition-all ${logo ? 'border-green-500 bg-green-50' : 'border-slate-200 group-hover:border-rose-300 bg-slate-50'}`}>
+                    <div className={`p-2 rounded-lg ${logo ? 'bg-green-100 text-green-600' : 'bg-white text-slate-400 border border-slate-100'}`}>
+                      <Type size={18} />
+                    </div>
+                    <span className={`text-[10px] font-black uppercase tracking-widest text-center ${logo ? 'text-green-700' : 'text-slate-600'}`}>{logo ? 'Logo Uploaded' : 'Drop Logo'}</span>
+                  </div>
+                </div>
               </div>
+
+              <div className="space-y-4">
+                <label className="flex items-center gap-2 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                   Screenshots
+                </label>
+                <div className="relative group">
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    multiple
+                    onChange={handleScreenshotsChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                    disabled={loading}
+                  />
+                  <div className={`p-4 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 transition-all ${screenshots.length > 0 ? 'border-green-500 bg-green-50' : 'border-slate-200 group-hover:border-rose-300 bg-slate-50'}`}>
+                    <div className={`p-2 rounded-lg ${screenshots.length > 0 ? 'bg-green-100 text-green-600' : 'bg-white text-slate-400 border border-slate-100'}`}>
+                      <Sparkles size={18} />
+                    </div>
+                    <span className={`text-[10px] font-black uppercase tracking-widest text-center ${screenshots.length > 0 ? 'text-green-700' : 'text-slate-600'}`}>
+                      {screenshots.length > 0 ? `${screenshots.length} Loaded` : 'Drop UI Shots'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+           </div>
+
+           <div className="grid grid-cols-3 gap-3">
+              <button 
+                type="button"
+                onClick={() => setIncludeSFX(!includeSFX)}
+                className={`p-3 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${
+                  includeSFX ? 'border-rose-600 bg-rose-50/50 text-rose-600' : 'border-slate-100 bg-slate-50 text-slate-400'
+                }`}
+              >
+                 <Volume2 size={16} />
+                 <div className="text-[9px] font-black uppercase tracking-widest">Haptics</div>
+              </button>
+
+              <button 
+                type="button"
+                onClick={() => setIncludeMusic(!includeMusic)}
+                className={`p-3 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${
+                  includeMusic ? 'border-rose-600 bg-rose-50/50 text-rose-600' : 'border-slate-100 bg-slate-50 text-slate-400'
+                }`}
+              >
+                 <Music2 size={16} />
+                 <div className="text-[9px] font-black uppercase tracking-widest">Music</div>
+              </button>
+
+              <button 
+                type="button"
+                onClick={() => setIncludeSpeech(!includeSpeech)}
+                className={`p-3 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${
+                  includeSpeech ? 'border-rose-600 bg-rose-50/50 text-rose-600' : 'border-slate-100 bg-slate-50 text-slate-400'
+                }`}
+              >
+                 <Mic size={16} />
+                 <div className="text-[9px] font-black uppercase tracking-widest">Speech</div>
+              </button>
            </div>
 
            <div className="pt-2">
               <button 
                 type="submit" 
-                disabled={!name.trim() || loading}
-                className="w-full py-6 bg-slate-900 text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-rose-600 active:scale-[0.98] transition-all shadow-xl shadow-slate-900/10 disabled:opacity-30 disabled:pointer-events-none group"
+                disabled={!name.trim() || !websiteUrl.trim() || !logo || loading}
+                className="w-full py-5 bg-slate-900 text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-rose-600 active:scale-[0.98] transition-all shadow-xl disabled:opacity-30 disabled:pointer-events-none group"
               >
-                {loading ? "Initializing..." : "Create Production"} 
+                {loading ? "Baking Studio..." : "Forge Production"} 
                 <ArrowRight size={22} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform" />
               </button>
            </div>
         </form>
       </motion.div>
-
     </div>
   );
 };

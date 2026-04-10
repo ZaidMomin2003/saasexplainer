@@ -87,6 +87,11 @@ interface ChatSidebarProps {
   durationInFrames?: number;
   currentFrame?: number;
   storyboard?: any[];
+  audioSettings?: {
+    includeSFX: boolean;
+    includeSpeech: boolean;
+  };
+  projectId: string; // Required for payment verification
 }
 
 export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(
@@ -119,6 +124,8 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(
       durationInFrames = 150,
       currentFrame = 0,
       storyboard: initialStoryboard,
+      audioSettings,
+      projectId,
     },
     ref,
   ) {
@@ -165,6 +172,8 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(
           frameImages: options?.attachedImages,
           durationSeconds: durationInFrames / fps,
           storyboard: options?.storyboard || initialStoryboard,
+          audioSettings,
+          projectId, // Pass projectId to API
         },
         {
           onCodeGenerated,

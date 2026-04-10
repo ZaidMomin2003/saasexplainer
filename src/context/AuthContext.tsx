@@ -3,6 +3,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User, signOut as firebaseSignOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { staticFile } from 'remotion';
+
+// Hardwire staticFile to global scope for dynamic evaluation safety
+if (typeof window !== 'undefined') {
+  (window as any).staticFile = staticFile;
+}
 
 interface AuthContextType {
   user: User | null;

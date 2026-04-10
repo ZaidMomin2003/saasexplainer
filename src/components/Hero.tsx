@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Zap, Globe, DollarSign, Check, Sparkles, Play, MessageSquare, MousePointer2, BarChart3, Clock } from "lucide-react";
+import { ArrowRight, Globe, Check, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -15,11 +15,31 @@ export const Hero = () => {
   const [loading, setLoading] = useState(false);
 
   return (
-    <section className="relative pt-40 pb-12 overflow-hidden bg-white">
+    <section className="relative pt-40 pb-12 overflow-hidden bg-[#FCFCFD]">
       {/* ── Ambient background orbs ── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-rose-50/40 blur-[120px] rounded-full" />
-        <div className="absolute top-[20%] -right-[10%] w-[30%] h-[50%] bg-orange-50/30 blur-[120px] rounded-full" />
+        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-gray-100 to-transparent opacity-40" />
+        <div className="absolute top-0 right-1/4 w-px h-full bg-gradient-to-b from-transparent via-gray-100 to-transparent opacity-40" />
+        <div className="absolute top-[35%] left-0 w-full h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent opacity-40" />
+        
+        <motion.div 
+          animate={{ 
+            x: [0, 50, -30, 0], 
+            y: [0, 20, 50, 0],
+            scale: [1, 1.2, 0.9, 1] 
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-rose-100/30 rounded-full blur-[120px]" 
+        />
+        <motion.div 
+          animate={{ 
+            x: [0, -40, 60, 0], 
+            y: [0, -30, -10, 0],
+            scale: [1, 1.1, 1.3, 1] 
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute bottom-0 right-0 w-[60%] h-[60%] bg-pink-100/30 rounded-full blur-[120px]" 
+        />
         
         {/* Subtle grid */}
         <svg className="absolute inset-0 w-full h-full opacity-[0.015]" xmlns="http://www.w3.org/2000/svg">
@@ -30,95 +50,6 @@ export const Hero = () => {
           </defs>
           <rect width="100%" height="100%" fill="url(#hero-grid)" />
         </svg>
-
-        {/* ── Floating Decorative Elements ── */}
-        <motion.div 
-          animate={{ y: [0, -20, 0], rotate: [0, 10, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[18%] left-[8%] opacity-20 text-rose-600 hidden lg:block"
-        >
-          <Play size={48} fill="currentColor" />
-        </motion.div>
-
-        <motion.div 
-          animate={{ y: [0, 30, 0], rotate: [0, -15, 0] }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute top-[28%] right-[10%] opacity-20 text-orange-400 hidden lg:block"
-        >
-          <Sparkles size={64} fill="currentColor" />
-        </motion.div>
-
-        {/* New Hovering Component 1: Video Timeline Card */}
-        <motion.div 
-          animate={{ x: [0, 10, 0], y: [0, -15, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          className="absolute top-[45%] left-[5%] hidden xl:block"
-        >
-          <div className="p-4 rounded-2xl bg-white shadow-2xl border border-gray-100 backdrop-blur-xl flex flex-col gap-3 w-48">
-            <div className="flex items-center gap-2">
-              <Clock size={14} className="text-rose-500" />
-              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }} animate={{ width: "70%" }} transition={{ duration: 2, repeat: Infinity }}
-                  className="h-full bg-rose-500" 
-                />
-              </div>
-            </div>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-8 flex-1 bg-gray-50 rounded-md border border-gray-100" />
-              ))}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* New Hovering Component 2: Engagement Bubble */}
-        <motion.div 
-          animate={{ y: [0, 25, 0], x: [0, -10, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute top-[60%] right-[6%] hidden xl:block"
-        >
-          <div className="p-4 rounded-3xl bg-gray-950 shadow-2xl border border-gray-800 flex items-center gap-4 group">
-            <div className="w-10 h-10 rounded-full bg-rose-600/20 flex items-center justify-center">
-              <BarChart3 size={18} className="text-rose-400 group-hover:scale-110 transition-transform" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest text-left">Engagement</span>
-              <span className="text-sm font-bold text-white">+84% Conversion</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* New Hovering Component 3: Cursor & Tooltip */}
-        <motion.div 
-          animate={{ 
-            x: [0, 100, 0], 
-            y: [0, 50, 0] 
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/2 left-1/4 hidden lg:block opacity-40 pointer-events-none"
-        >
-          <div className="relative">
-            <MousePointer2 size={32} className="text-gray-950 fill-white" />
-            <div className="absolute top-full left-full mt-2 bg-rose-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
-              VIBE EDITING...
-            </div>
-          </div>
-        </motion.div>
-
-        {/* New Hovering Component 4: Feedback Card */}
-        <motion.div 
-          animate={{ y: [0, -30, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-          className="absolute bottom-[20%] right-[12%] hidden lg:block"
-        >
-          <div className="p-4 rounded-2xl bg-white shadow-xl border border-gray-100 flex items-center gap-3">
-             <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                <MessageSquare size={14} className="text-emerald-600" />
-             </div>
-             <span className="text-xs font-bold text-gray-900 tracking-tight italic">"This vibes so hard!"</span>
-          </div>
-        </motion.div>
       </div>
 
       {/* ── Headline Container ── */}
@@ -128,13 +59,13 @@ export const Hero = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 mb-10 px-4 py-2 rounded-full border border-gray-100 bg-white/80 backdrop-blur-md shadow-sm"
+          className="inline-flex items-center gap-2 mb-10 px-4 py-2 rounded-full border border-rose-100 bg-rose-50/30 shadow-sm"
         >
-          <div className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+          <Sparkles size={14} className="text-rose-600 fill-rose-600/20" />
           <span className="text-[13px] font-bold text-gray-800 tracking-tight leading-none">
-            Join the <span className="text-rose-600">Waitlist</span> for early access
+            Now includes <span className="text-rose-600 font-black">AI Speech & Music</span>
           </span>
-          <ArrowRight size={14} className="text-gray-400 ml-1" />
+          <div className="flex h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse ml-1" />
         </motion.div>
 
         {/* ── Main Headline ── */}
@@ -142,9 +73,9 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="text-6xl md:text-[6.5rem] font-black tracking-[-0.05em] text-gray-950 leading-[0.9] mb-10 max-w-5xl"
+          className="text-6xl md:text-[5.5rem] font-black tracking-tighter text-gray-950 leading-[0.85] mb-10 max-w-6xl"
         >
-          The <span className="font-normal leading-none text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-orange-500 to-amber-500 px-4 py-2 text-[1.15em]" style={{ fontFamily: 'var(--font-cursive)', textShadow: '0 0 40px rgba(225,29,72,0.1)' }}>Lovable</span> <br /> of SaaS Explainer.
+          The <span className="font-normal leading-none text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-orange-500 px-2 py-2 text-[1.1em]" style={{ fontFamily: 'var(--font-cursive)', textShadow: '0 10px 30px rgba(225,29,72,0.1)' }}>Lovable</span> <br /> of SaaS Explainer.
         </motion.h1>
 
         {/* ── Sub-headline ── */}
@@ -152,120 +83,103 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="text-xl md:text-2xl text-gray-500 font-medium tracking-tight mb-14 max-w-3xl leading-relaxed"
+          className="text-lg md:text-xl text-gray-500 font-medium tracking-tight mb-10 max-w-3xl leading-relaxed"
         >
-          Vibe edit your SaaS explainer video with Speech and text—<span className="text-gray-950 font-black tracking-tight">no screen record required</span>. <span className="text-gray-950 font-black tracking-tight">Start for free today</span> and get your first video in minutes. Edit unlimited and export only if you like it for <span className="text-rose-600 font-black underline decoration-rose-200 underline-offset-4">just $29</span>.
+          Paste your website link and logo. Our engine creates a <span className="text-gray-950 font-black tracking-tight">high-end SaaS animation</span> with SFX, music, and AI speech automatically. <span className="text-rose-600 font-black tracking-tight underline decoration-rose-200 underline-offset-4">No screen record required</span> (screenshots are appreciated). <span className="text-rose-600 font-black">Free to start</span>. No credit card required.
         </motion.p>
 
-        {/* ── Primary Actions ── */}
-        <div className="relative w-full flex flex-col items-center mb-32 group">
+        {/* ── URL Input & Primary Actions ── */}
+        <div className="relative w-full flex flex-col items-center mb-20 group">
           <motion.div
              initial={{ opacity: 0, y: 20 }}
              animate={{ opacity: 1, y: 0 }}
              transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
              className="w-full flex justify-center"
           >
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <Link
-                href="/signup"
-                onClick={() => gtag.event({ action: 'hero_sign_up_click', category: 'conversion' })}
-                className="w-full sm:w-auto bg-rose-600 text-white px-10 py-5 rounded-2xl font-black text-lg tracking-tight shadow-[0_25px_60px_-15px_rgba(225,29,72,0.4)] hover:bg-rose-700 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
-              >
-                Start for free <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <button 
-                onClick={() => document.getElementById("video-preview")?.scrollIntoView({ behavior: "smooth" })}
-                className="w-full sm:w-auto bg-white text-gray-950 px-10 py-5 rounded-2xl font-black text-lg tracking-tight border-2 border-gray-100 hover:bg-gray-50 hover:border-gray-200 transition-all active:scale-[0.98] block text-center"
-              >
-                Watch Demo
-              </button>
+            <div className="w-full max-w-2xl">
+              <div className="relative group/input">
+                <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
+                  <Globe size={20} className="text-gray-400 group-focus-within/input:text-rose-500 transition-colors" />
+                </div>
+                <input 
+                  type="text"
+                  placeholder="Paste your SaaS website link"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="w-full bg-white border-2 border-gray-100 rounded-full py-5 pl-16 pr-44 text-lg font-bold text-gray-900 placeholder:text-gray-300 focus:outline-none focus:border-rose-200 focus:ring-4 focus:ring-rose-50/50 shadow-xl shadow-black/5 transition-all"
+                />
+                <button
+                  onClick={() => router.push("/waitlist")}
+                  className="absolute right-3 top-2 bottom-2 bg-rose-600 text-white px-8 rounded-full font-black text-base tracking-tight hover:bg-rose-700 active:scale-95 transition-all flex items-center gap-2 group/btn"
+                >
+                  Create Video <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                </button>
+              </div>
             </div>
           </motion.div>
 
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
+          <div className="mt-8 flex flex-wrap justify-center gap-6">
              <motion.div 
-               initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}
-               className="flex items-center gap-2 px-5 py-2.5 bg-white rounded-xl border border-gray-100 shadow-xl shadow-black/5"
+               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+               className="flex items-center gap-3 px-6 py-3 bg-white rounded-2xl border border-gray-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)]"
              >
-                <div className="w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center">
-                   <Check size={12} className="text-emerald-600" />
+                <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
+                   <Check size={14} className="text-white" />
                 </div>
-                <span className="text-sm font-bold text-gray-900 tracking-tight">Unlimited Free Edits</span>
+                <span className="text-sm font-black text-gray-900 tracking-tight">Satisfied or Pay $0</span>
              </motion.div>
 
              <motion.div 
-               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.8 }}
-               className="flex items-center gap-2 px-5 py-2.5 bg-gray-950 rounded-xl border border-gray-800 shadow-xl shadow-black/20"
+               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
+               className="flex items-center gap-3 px-6 py-3 bg-gray-950 rounded-2xl border border-gray-800 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.2)]"
              >
-                <span className="text-sm font-bold text-white tracking-tight">$29 Per Export</span>
-                <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
-                   <Sparkles size={12} className="text-rose-400" />
+                <div className="w-6 h-6 rounded-full bg-rose-600 flex items-center justify-center">
+                   <Sparkles size={14} className="text-white" />
                 </div>
+                <span className="text-sm font-black text-white tracking-tight">Unlimited Revisions</span>
              </motion.div>
           </div>
         </div>
       </div>
 
       {/* ── High-Fidelity Vimeo Preview ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1, delay: 0.2 }}
-        id="video-preview"
-        className="w-full max-w-7xl mx-auto px-6 relative scroll-mt-32 mb-20"
-      >
-        <div className="relative group">
-          {/* Floating UI Badges Around Video */}
-          <div className="absolute -top-6 -left-6 z-20 hidden md:flex flex-col gap-2 pointer-events-none">
-            <motion.div 
-               animate={{ x: [-5, 5, -5] }} transition={{ duration: 4, repeat: Infinity }}
-               className="bg-white px-4 py-2 rounded-xl shadow-2xl border border-rose-100 flex items-center gap-2"
-            >
-               <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-               <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest leading-none">Rendering Live</span>
-            </motion.div>
-            <div className="bg-slate-950 px-4 py-2 rounded-xl shadow-2xl border border-slate-800 flex items-center gap-2">
-               <Zap size={12} className="text-amber-400 fill-amber-400" />
-               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">0.2s Avg. Frame Rate</span>
+      <div className="mt-52 w-full max-w-6xl mx-auto px-6 relative scroll-mt-32 mb-32">
+         <div className="relative group">
+            {/* High-End Branding Label */}
+            <div className="absolute -top-16 left-4 hidden md:flex items-center gap-6 pointer-events-none">
+               <span className="text-4xl font-normal text-rose-500" style={{ fontFamily: 'var(--font-cursive)' }}>
+                  Made with SaaSExplainer
+               </span>
             </div>
-          </div>
 
-          <div className="absolute -bottom-6 -right-6 z-20 hidden md:flex flex-col gap-2 pointer-events-none items-end">
-            <div className="bg-white px-4 py-2 rounded-xl shadow-2xl border border-emerald-100 flex items-center gap-2">
-               <Check size={12} className="text-emerald-600" />
-               <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">Made with Bake Studio</span>
+            {/* Video Container (High-Contrast Browser Mockup) */}
+            <div className="w-full aspect-video bg-neutral-950 rounded-3xl md:rounded-[3rem] overflow-hidden shadow-[0_60px_120px_-20px_rgba(0,0,0,0.4)] relative border-[16px] border-white group-hover:border-rose-50 transition-all duration-700">
+               {/* Browser Status Bar */}
+               <div className="absolute top-0 inset-x-0 h-12 bg-white border-b border-gray-100 flex items-center px-8 gap-3 z-30">
+                  <div className="flex gap-2">
+                     <div className="w-3 h-3 rounded-full bg-rose-100 border border-rose-200" />
+                     <div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-200" />
+                     <div className="w-3 h-3 rounded-full bg-amber-100 border border-amber-200" />
+                  </div>
+                  <div className="mx-auto bg-gray-100/50 px-12 py-1.5 rounded-lg text-xs font-black text-gray-400 tracking-tighter">
+                     studio.saasexplainer.online/project/vibe
+                  </div>
+               </div>
+
+               <div className="absolute inset-0 pt-12">
+                  <iframe 
+                    src="https://player.vimeo.com/video/824804225?autoplay=1&loop=1&background=1&muted=1" 
+                    className="w-full h-full scale-[1.02]"
+                    allow="autoplay; fullscreen; picture-in-picture" 
+                    allowFullScreen
+                  />
+               </div>
+               
+               {/* Vibrant Overlays for Depth */}
+               <div className="absolute inset-0 hidden md:block bg-gradient-to-t from-black/60 via-transparent to-black/10 pointer-events-none z-20" />
             </div>
-            <motion.div 
-               animate={{ scale: [0.95, 1, 0.95] }} transition={{ duration: 3, repeat: Infinity }}
-               className="bg-rose-600 px-4 py-2 rounded-xl shadow-2xl flex items-center gap-2"
-            >
-               <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none">Hollywood Grade Export</span>
-            </motion.div>
-          </div>
-
-          {/* Video Container */}
-          <div className="w-full aspect-video bg-slate-950 rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)] relative border-4 md:border-8 border-white/50 backdrop-blur-3xl group-hover:border-rose-500/10 transition-all duration-700">
-             <iframe 
-               src="https://player.vimeo.com/video/824804225?autoplay=1&loop=1&background=1&muted=1" 
-               className="absolute inset-0 w-full h-full scale-[1.01]"
-               allow="autoplay; fullscreen; picture-in-picture" 
-               allowFullScreen
-             />
-             
-             {/* Gradient Overlays for Depth (Hidden on mobile) */}
-             <div className="absolute inset-0 hidden md:block bg-gradient-to-t from-slate-950/40 via-transparent to-slate-950/10 pointer-events-none" />
-             <div className="absolute inset-x-0 bottom-0 h-32 hidden md:block bg-gradient-to-t from-slate-950/80 to-transparent pointer-events-none" />
-          </div>
-
-          {/* Decorative Corner Lights */}
-          <div className="absolute top-0 left-0 w-64 h-64 bg-rose-600/10 blur-[100px] pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-64 h-64 bg-orange-600/10 blur-[100px] pointer-events-none" />
-        </div>
-      </motion.div>
-
-      {/* Affiliate Section Hidden per user request */}
-      {/* <div className="max-w-6xl mx-auto px-6">...</div> */}
+         </div>
+      </div>
     </section>
   );
 };

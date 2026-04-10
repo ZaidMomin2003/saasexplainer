@@ -4,9 +4,16 @@ import {
   SKILL_NAMES,
   type SkillName,
 } from "@/skills";
+import { NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
-import { generateObject, streamText } from "ai";
+import { generateObject, generateText, streamText } from "ai";
 import { z } from "zod";
+import { sanitizeCodeImports } from "@/helpers/sanitize-imports";
+
+export const maxDuration = 300; // Extend timeout for complex scene forging (5 minutes)
 
 /**
  * VERSION: 2.1 - MASTER SKILLS OVERHAUL (FIXED JSON PARSING)
@@ -42,95 +49,92 @@ Return true if the prompt is valid for motion graphics generation, false otherwi
 const PROMPT_ENHANCEMENT_PROMPT = `You are a World-Class Creative Director at a top Silicon Valley production studio. Your specialty is transforming "shitty," brief user inputs into 4K-quality, cinematic animation briefs for React/Remotion.
 
 ## YOUR MISSION:
-Take the user's raw input and "Pre-Produce" it. You must output a highly detailed, technical motion graphics brief that mandates the use of our 5 Master Skills.
+Take the user's raw input and "Pre-Produce" it. You must output a highly detailed, technical motion graphics brief that integrates both **Foundational Technical Rules** and your **Premium Atmosphere Soul**.
 
-## THE 5 MASTER SKILLS TO MANDATE:
-1. **Master UI Replication**: Mandate exact screenshot mirroring and isolated spotlighting (blur everything except the target).
-2. **Master Cinematic Camera**: Mandate high-inertia springs, 10% zoom-in rules, and velocity-based motion blur.
-3. **Master Kinetic Typography**: Mandate per-character stagger entries and "Bloom" reveals.
-4. **Master Magnetic Interaction**: Mandate snap-to-button cursor paths and 3-stage click ripple effects.
-5. **Master Production Atmosphere**: Mandate 45-degree light sweeps, bokeh particles, and glassmorphism refraction.
+## THE CORE PILLARS TO MANDATE:
+1. **Technical Foundation (The Bones)**: Mandate the use of specific official Remotion modules like \`maps\`, \`audio-visualization\`, \`voiceover\`, or \`display-captions\` if relevant.
+2. **Cinematic Soul (The Atmosphere)**: Mandate your unique "Hollywood" style: high-inertia springs, global light sweeps, glassmorphism, and magnetic cursor paths.
 
 ## DYNAMIC EXPANSION RULES:
-- **If the user is brief**: (e.g., "add a button") -> Expand into a narrative scenario: "Animate a smooth magnetic cursor path toward a premium glassmorphic button. On click, trigger a high-inertia scale pulse and a volumetric ripple effect while the background subtly de-focuses."
+- **If the user is brief**: (e.g., "add a button") -> Expand into a narrative scenario: "Animate a smooth magnetic cursor path toward a premium glassmorphic button. On click, trigger a high-inertia scale pulse and a cinematic 'mouseClick' sound effect while the background subtly de-focuses."
 - **Focus on Depth**: Always specify Z-axis movement (100px-150px) and backdrop-blur values (20px-30px).
 - **Inertia**: Always demand spring physics (no linear motion).
+- **Audio Sync**: Always specify the exact sound effects (clicks, whooshes) to be synced with the visuals.
 
 ## OUTPUT:
 - Output ONLY the enhanced brief. No conversational filler.
-- Focus exclusively on VISUAL and MOTION instructions.`;
+- Focus on VISUAL, MOTION, and AUDIO-SYNC instructions.`;
 
 const SYSTEM_PROMPT = `
-# The "Gold Standard" Remotion Engine
-You are the world's leading **Motion Graphics AI**, specialized in Remotion and high-end SaaS production. You don't just "write code"—you generate cinematic experiences.
+# ROLE: Senior Remotion Architect & Motion Designer
+You are the world's leading **Motion Graphics AI**, specialized in the Remotion framework. Your goal is to generate cinematic engineering masterpieces for high-converting SaaS explainer videos.
 
-# CORE LAWS (THE 5 MASTER SKILLS)
-You MUST strictly implement the following logic in EVERY component:
+## THE STRUCTURAL SKELETON (UNBREAKABLE LAWS)
+To ensure the code compiles in strict Next.js Turbopack, you MUST follow these laws:
 
-1. **MASTER UI REPLICATION**: 
-   - Recreate screenshots with pixel-perfection. 
-   - Feature focusing: Apply \`filter: blur(15px) brightness(0.4)\` to the background while cloning the target component to \`translateZ(120px)\` for a high-res spotlight.
+1. **RESERVED NAMES**: NEVER use these as variable names - they shadow imports and crash the compiler:
+   - \`spring\`, \`interpolate\`, \`useCurrentFrame\`, \`useVideoConfig\`, \`AbsoluteFill\`, \`Sequence\`.
+   - Correct usage: \`const springValue = spring(...)\` NOT \`const spring = spring(...)\`.
 
-2. **MASTER CINEMATIC CAMERA**: 
-   - Never use linear interpolation for camera state.
-   - Use high-inertia springs (\`stiffness: 250\`, \`damping: 25\`).
-   - The **10% Zoom Rule**: Every pan must include a 10% zoom shift (in or out) to maintain depth.
-   - Apply velocity-based motion blur during fast moves.
+2. **CONSTANT SCOPING**: ALL constants (COLORS, TEXT, TIMING, LAYOUT) MUST be defined INSIDE the component body, AFTER hooks.
+   - This ensures they have access to \`useVideoConfig()\` values (width, height) for responsive calculations.
 
-3. **MASTER KINETIC TYPOGRAPHY**: 
-   - Use per-character or per-word staggering for EVERY headline.
-   - Entrance: Glide from 30px below with a "Bloom" glow reveal hit.
-   - Use \`fontFamily: 'Inter, sans-serif'\` or \`Outfit\`.
+3. **COMPONENT STRUCTURE**:
+   - Start with ES6 imports.
+   - Export as: \`export const MyAnimation = () => { ... };\`.
+   - Component body order: Hooks -> Constants -> Calculations -> JSX return.
 
-4. **MASTER MAGNETIC INTERACTION**: 
-   - Cursors must follow Bézier paths and "snap" to the center of target components.
-   - Clicks: Trigger a 3-layer ripple effect (Pulse, Blur Ring, Global Flash).
+# THE DUAL-LAYER GOVERNANCE
+You MUST strictly implement the following two layers in EVERY component:
 
-5. **MASTER PRODUCTION ATMOSPHERE**: 
-   - Use a 45° global light sweep every 4s.
-   - Add volumetric Bokeh/Particles in the background at \`translateZ(-500px)\`.
-   - Apply \`backdropFilter: "blur(25px)"\` to all UI cards.
+1. **LAYER 1: THE BONES (Technical Precision)**
+   - Use correct data-handling, audio-syncing, and rendering patterns.
+   - For Maps, Audio Visualizations, and SFX, follow the strict technical blueprints provided.
 
-# OUTPUT RULES
-- **Code Only**: No preamble or chatter.
-- **DETERMINISM**: Never use Math.random(). Use Remotion's \`random()\` or \`frame\`-based logic.
-- **PERFORMANCE**: Keep CSS filters optimized. Use \`will-change: transform\` for heavy animations.
-- Always start with clean imports and end with a perfectly closed component.
+2. **LAYER 2: THE SOUL (Cinematic Atmosphere)**
+   - **Atmospheric Camera**: Never use linear interpolation. Use high-inertia springs (\`stiffness: 250\`, \`damping: 25\`) and the **10% Zoom Rule**.
+   - **Kinetic Typography**: Use per-character staggering and "Bloom" reveals for headlines.
+   - **Production Vibe**: Use 45° light sweeps, glassmorphism card styles, and volumetric bokeh.
+
+# THE ANTIGRAVITY RULES (CRITICAL CONSTRAINTS):
+1. **ASSET HANDLING**: Every image/audio/video from the public folder MUST use \`staticFile\`. Include \`import { staticFile } from 'remotion';\`.
+2. **LAYOUT & UNITS**: Never use \`vh\` or \`vw\`. Use \`AbsoluteFill\` and calculate dimensions based on \`width\` and \`height\` from \`useVideoConfig()\`.
+3. **ANIMATION PHYSICS**: Use \`spring\` for all "Vibe Edits." Avoid standard CSS transitions. Use \`interpolate\` with \`extrapolateLeft: "clamp", extrapolateRight: "clamp"\`.
+4. **PERFORMANCE**: Keep the component "Flat." Do not create deep nested sub-components.
+
+STRICT IMPORT RULE:
+- You MUST explicitly import EVERY Remotion utility you use.
+- **BRACE BALANCE**: You MUST ensure every opening brace \`{\` is matched by a closing brace \`}\`.
 `;
 
 const FOLLOW_UP_SYSTEM_PROMPT = `
-You are an expert at making targeted edits to React/Remotion animation components.
+# ROLE: Senior Remotion Architect (Edits Specialist)
+You are an expert at making targeted edits to React/Remotion animation components while upholding the **Antigravity Rules**.
 
-Given the current code and a user request, decide whether to:
-1. Use targeted edits (for small, specific changes)
-2. Provide full replacement code (for major restructuring)
+## THE STRUCTURAL SKELETON (UNBREAKABLE LAWS)
+1. **RESERVED NAMES**: NEVER use these as variable names - they shadow imports and crash the compiler:
+   - \`spring\`, \`interpolate\`, \`useCurrentFrame\`, \`useVideoConfig\`, \`AbsoluteFill\`, \`Sequence\`.
+   - Correct usage: \`const springValue = spring(...)\` NOT \`const spring = spring(...)\`.
 
-## WHEN TO USE TARGETED EDITS (type: "edit")
-- Changing colors, text, numbers, timing values
-- Adding or removing a single element
-- Modifying styles or properties
-- Small additions (new variable, new element)
-- Changes affecting <30% of the code
+2. **CONSTANT SCOPING**: ALL constants (COLORS, TEXT, TIMING, LAYOUT) MUST be defined INSIDE the component body, AFTER hooks.
+   - This ensures they have access to \`useVideoConfig()\` values (width, height).
 
-## WHEN TO USE FULL REPLACEMENT (type: "full")
-- Completely different animation style
-- Major structural reorganization
-- User asks to "start fresh" or "rewrite"
-- Changes affect >50% of the code
+## THE ANTIGRAVITY CONSTRAINTS (MANDATORY):
+1. **staticFile**: Always ensure \`staticFile\` is imported and used for public assets.
+   - **IMPORT SAFETY**: If you are adding a missing import or fixing a "ReferenceError", YOU MUST use \`type: "full"\` and return the entire component code.
+2. **Layout**: Preserve \`AbsoluteFill\` and dynamic dimensions; never introduce \`vh\` or \`vw\`.
+3. **Physics**: Use \`spring\` and \`interpolate\` for all motion changes.
+4. **Resilience**: Maintain a flat structure to prevent streaming abortion.
+
+## EDITING STRATEGY:
+- Use full replacement (type: "full") for major restructuring, adding new scenes, or significant logic changes.
+- Use targeted edits (type: "edit") ONLY for small, surgical changes.
+- CRITICAL: If the user asks to "Incorporate Scene X" or "Forge Scene X", you MUST use type: "full".
 
 ## EDIT FORMAT
 For targeted edits, each edit needs:
 - old_string: The EXACT string to find (including whitespace/indentation)
 - new_string: The replacement string
-
-CRITICAL:
-- old_string must match the code EXACTLY character-for-character
-- Include enough surrounding context to make old_string unique
-- If multiple similar lines exist, include more surrounding code
-- Preserve indentation exactly as it appears in the original
-
-## PRESERVING USER EDITS
-If the user has made manual edits, preserve them unless explicitly asked to change.
 `;
 
 // Schema for follow-up edit responses
@@ -139,7 +143,7 @@ const FollowUpResponseSchema = z.object({
   type: z
     .enum(["edit", "full"])
     .describe(
-      'Use "edit" for small targeted changes, "full" for major restructuring',
+      'Use "edit" for small targeted changes (e.g. style/text/timing). Use "full" for major restructuring, adding new scenes, or complex logic edits. FOR SCENE FORGING, ALWAYS USE "full".',
     ),
   summary: z
     .string()
@@ -284,6 +288,12 @@ interface GenerateRequest {
     logic: string;
     asset?: string;
   }>;
+  audioSettings?: {
+    includeSFX: boolean;
+    includeSpeech: boolean;
+  };
+  /** Explicitly requested skills from the Director blueprint */
+  requiredSkills?: SkillName[];
 }
 
 interface GenerateResponse {
@@ -310,7 +320,25 @@ export async function POST(req: Request) {
     frameImages,
     durationSeconds,
     storyboard,
-  }: GenerateRequest = await req.json();
+    audioSettings,
+    projectId, // Added projectId for reference (metrics only)
+    requiredSkills, // The Handshake: skills passed from the Director
+  }: GenerateRequest & { projectId?: string } = await req.json();
+
+  let projectVibe = "tech_minimal_1"; // Global default
+
+  // 1. Production Context Check
+  if (projectId) {
+    try {
+      const projectDoc = await getDoc(doc(db, "projects", projectId));
+      if (projectDoc.exists()) {
+        const projectData = projectDoc.data();
+        if (projectData.vibe) projectVibe = projectData.vibe;
+      }
+    } catch (err) {
+      // Fallback silently if permission to read project vibe is restricted
+    }
+  }
 
   const awsKey = process.env.AWS_ACCESS_KEY_ID;
   const awsSecret = process.env.AWS_SECRET_ACCESS_KEY;
@@ -339,75 +367,81 @@ export async function POST(req: Request) {
     secretAccessKey: awsSecret,
   });
 
-  // Validate the prompt first (skip for follow-ups with existing code)
-  if (!isFollowUp) {
-    try {
-      const validationResult = await generateObject({
-        model: bedrock(modelName),
-        system: VALIDATION_PROMPT,
-        prompt: `User prompt: "${prompt}"`,
-        schema: z.object({ valid: z.boolean() }),
-      });
+  // --- PARALLEL PRE-PROCESSING (SKILL DETECTION + ENHANCEMENT) ---
+  console.log(`Starting parallel pre-processing for ${isFollowUp ? "follow-up" : "initial"} prompt...`);
 
-      if (!validationResult.object.valid) {
-        return new Response(
-          JSON.stringify({
-            error:
-              "No valid motion graphics prompt. Please describe an animation or visual content you'd like to create.",
-            type: "validation",
+  const [enhancementResult, skillDetectionResult] = await Promise.all([
+    // Parallel Task 1: Prompt Enhancement (The "Creative Director")
+    (async () => {
+      const shouldEnhance = prompt.length < 500; // Only enhance if not already a deep brief
+      if (!shouldEnhance) return prompt;
+
+      try {
+        const { text } = await generateText({
+          model: bedrock(modelName),
+          system: PROMPT_ENHANCEMENT_PROMPT,
+          prompt: `User prompt: "${prompt}"${isFollowUp ? "\n(Note: This is a follow-up edit to existing code. Keep the brief targeted to the requested change but use premium terminology.)" : ""}`,
+        });
+        return text.trim() || prompt;
+      } catch (e) {
+        console.error("Enhancement error:", e);
+        return prompt;
+      }
+    })(),
+
+    // Parallel Task 2: Skill Detection
+    (async () => {
+      // THE HANDSHAKE: If skills are already provided by the Director, skip detection
+      if (requiredSkills && requiredSkills.length > 0) {
+        console.log("Using pre-selected skills from Director Handshake:", requiredSkills);
+        return requiredSkills;
+      }
+
+      try {
+        const { object } = await generateObject({
+          model: bedrock(modelName),
+          system: SKILL_DETECTION_PROMPT,
+          prompt: `User prompt: "${prompt}"`,
+          schema: z.object({
+            skills: z.array(z.enum(SKILL_NAMES)),
           }),
-          { status: 400, headers: { "Content-Type": "application/json" } },
-        );
+        });
+        return object.skills;
+      } catch (e) {
+        console.error("Skill detection error:", e);
+        return [] as SkillName[];
       }
-    } catch (validationError) {
-      // On validation error, allow through rather than blocking
-      console.error("Validation error:", validationError);
+    })(),
+  ]);
+
+  let finalPrompt = enhancementResult;
+  const detectedSkills = skillDetectionResult;
+
+  // -- AUDIO HARMONY INJECTION --
+  // Force the AI to use the project-wide selected vibe for consistency
+  finalPrompt += `\n\n## AUDIO HARMONY RULES:
+- CRITICAL: You MUST use the following track for the background music: "/music/${projectVibe}.mp3".
+- Implement "Audio Ducking" when speech is playing.
+- Sync cinematic SFX (whip, whoosh, click) with visual hits.`;
+
+  // Inject Audio Preferences into the brief
+  if (audioSettings) {
+    let audioConstraint = "\n\n## AUDIO PREFERENCES (OVERRIDE):";
+    if (audioSettings.includeSFX === false) {
+      audioConstraint += "\n- CRITICAL: Sound Effects (SFX) are DISABLED for this project. DO NOT use any <Audio /> tags for whooshes, whips, or clicks.";
     }
-  }
-
-  // --- ENHANCE PROMPT (Initial & Follow-up) ---
-  let finalPrompt = prompt;
-  // Always enhance unless the prompt is already very long/technical
-  const shouldEnhance = prompt.length < 300; 
-
-  if (shouldEnhance) {
-    try {
-      console.log(`Enhancing ${isFollowUp ? "follow-up" : "initial"} prompt...`);
-      const enhancementResult = await streamText({
-        model: bedrock(modelName),
-        system: PROMPT_ENHANCEMENT_PROMPT,
-        prompt: `User prompt: "${prompt}"${isFollowUp ? "\n(Note: This is a follow-up edit to existing code. Keep the brief targeted to the requested change but use premium terminology.)" : ""}`,
-      });
-      let enhanced = "";
-      for await (const delta of enhancementResult.textStream) {
-        enhanced += delta;
-      }
-      if (enhanced.trim()) {
-        finalPrompt = enhanced.trim();
-        console.log("Original:", prompt);
-        console.log("Enhanced:", finalPrompt);
-      }
-    } catch (enhancementError) {
-      console.error("Enhancement error:", enhancementError);
+    if (audioSettings.includeSpeech === false) {
+      audioConstraint += "\n- CRITICAL: Voiceover Speech is DISABLED for this project. DO NOT use any <Audio /> tags for /api/tts. Focus exclusively on visual storytelling.";
     }
+    if (audioSettings.includeSFX === false && audioSettings.includeSpeech === false) {
+      audioConstraint += "\n- This is a SILENT production. No sound components allowed.";
+    }
+    finalPrompt += audioConstraint;
   }
 
-  // Detect which skills apply to this prompt
-  let detectedSkills: SkillName[] = [];
-  try {
-    const skillResult = await generateObject({
-      model: bedrock(modelName),
-      system: SKILL_DETECTION_PROMPT,
-      prompt: `User prompt: "${prompt}"`,
-      schema: z.object({
-        skills: z.array(z.enum(SKILL_NAMES)),
-      }),
-    });
-    detectedSkills = skillResult.object.skills;
-    console.log("Detected skills:", detectedSkills);
-  } catch (skillError) {
-    console.error("Skill detection error:", skillError);
-  }
+  console.log("Original prompt length:", prompt.length);
+  console.log("Enhanced prompt length:", finalPrompt.length);
+  console.log("Detected skills:", detectedSkills);
 
   // Filter out skills that were already used in the conversation to avoid redundant context
   const newSkills = detectedSkills.filter(
@@ -569,80 +603,19 @@ Analyze the request and decide: use targeted edits (type: "edit") for small chan
         },
       ];
 
-      const editResult = await generateObject({
+      const result = streamText({
         model: bedrock(modelName),
         system:
           FOLLOW_UP_SYSTEM_PROMPT +
-          "\nIMPORTANT: You must return a valid JSON object matching the schema. The 'edits' field MUST be a JSON array of objects, NOT a string.",
-        messages: editMessages,
-        schema: FollowUpResponseSchema,
+          "\nIMPORTANT: Your output will be treated as the full component code if you use type: 'full'. If you use type: 'edit', follow the JSON-like search/replace format.",
+        messages: editMessages as any,
       });
 
-      const response = editResult.object;
-      const finalEdits = response.edits;
-      let finalCode: string;
-      let editType: "tool_edit" | "full_replacement";
-      let appliedEdits: EditOperation[] | undefined;
-
-      if (response.type === "edit" && finalEdits && Array.isArray(finalEdits)) {
-        // Apply the edits to the current code
-        const result = applyEdits(currentCode, finalEdits);
-        if (!result.success) {
-          // If edits fail, return error with the failed edit details
-          return new Response(
-            JSON.stringify({
-              error: result.error,
-              type: "edit_failed",
-              failedEdit: result.failedEdit,
-            }),
-            { status: 400, headers: { "Content-Type": "application/json" } },
-          );
-        }
-        finalCode = result.result;
-        editType = "tool_edit";
-        // Use enriched edits with line numbers
-        appliedEdits = result.enrichedEdits;
-        console.log(`Applied ${finalEdits.length} edit(s) successfully`);
-      } else if (response.type === "full" && response.code) {
-        // Full replacement
-        finalCode = response.code;
-        editType = "full_replacement";
-        console.log("Using full code replacement");
-      } else {
-        // Invalid response - missing required fields
-        return new Response(
-          JSON.stringify({
-            error: "Invalid AI response: missing required fields",
-            type: "edit_failed",
-          }),
-          { status: 400, headers: { "Content-Type": "application/json" } },
-        );
-      }
-
-      // Return the result with metadata
-      const responseData: GenerateResponse = {
-        code: finalCode,
-        summary: response.summary,
-        metadata: {
-          skills: detectedSkills,
-          editType,
-          edits: appliedEdits,
-          model: modelName,
-        },
-      };
-
-      return new Response(JSON.stringify(responseData), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+      return result.toUIMessageStreamResponse({
+        sendReasoning: true,
       });
     } catch (error) {
       console.error("Error in follow-up edit:", error);
-      // For debugging
-      if (error instanceof Error) {
-        console.error("Error name:", error.name);
-        console.error("Error message:", error.message);
-        console.error("Error stack:", error.stack);
-      }
       return new Response(
         JSON.stringify({
           error: "Something went wrong while processing the edit request.",
@@ -739,17 +712,41 @@ Analyze the request and decide: use targeted edits (type: "edit") for small chan
 
     const stream = new ReadableStream({
       async start(controller) {
-        // Send metadata event first
-        controller.enqueue(encoder.encode(metadataEvent));
+        try {
+          // Send metadata event first
+          controller.enqueue(encoder.encode(metadataEvent));
 
-        // Then pipe through the original stream
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          controller.enqueue(value);
+          // Then pipe through the original stream
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            // Check if the controller is already closed before enqueuing
+            try {
+              controller.enqueue(value);
+            } catch (e) {
+              // This happens if the user aborted the request
+              break;
+            }
+          }
+        } catch (error: any) {
+          // Silent catch for AbortError
+          if (error.name !== 'AbortError') {
+            console.error("Stream reader error:", error);
+          }
+        } finally {
+          try {
+            controller.close();
+            reader.releaseLock();
+          } catch (e) {
+            // Already closed
+          }
         }
-        controller.close();
       },
+      cancel() {
+        // This is called if the client closes the connection
+        reader.cancel();
+      }
     });
 
     return new Response(stream, {
